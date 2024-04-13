@@ -51,8 +51,8 @@ void clearScreen(u_int colorBGR)
 /** 5x7 font - this function draws background pixels
  *  Adapted from RobG's EduKit
  */
-void drawChar5x7(u_char rcol, u_char rrow, char c, 
-     u_int fgColorBGR, u_int bgColorBGR) 
+void drawChar5x7(u_char rcol, u_char rrow, char c,
+     u_int fgColorBGR, u_int bgColorBGR)
 {
   u_char col = 0;
   u_char row = 0;
@@ -71,6 +71,35 @@ void drawChar5x7(u_char rcol, u_char rrow, char c,
     row++;
   }
 }
+
+
+void drawChar11x16(u_char rcol, u_char rrow, char c,
+     u_int fgColorBGR, u_int bgColorBGR)
+{
+  u_char col = 0;
+  u_char row = 0;
+  unsigned short bit = 0x0001;
+  u_char oc = c - 0x20;
+
+  lcd_setArea(rcol, rrow, rcol + 10, rrow + 16); /* relative to requested col/row */
+  while (row < 17) {
+    while (col < 11) {
+      u_int colorBGR = (font_11x16[oc][col] & bit) ? fgColorBGR : bgColorBGR;
+      lcd_writeColor(colorBGR);
+      col++;
+    }
+    col = 0;
+    bit <<= 1;
+    row++;
+  }
+}
+
+
+
+
+
+
+
 
 /** Draw string at col,row
  *  Type:
@@ -104,7 +133,7 @@ void drawString5x7(u_char col, u_char row, char *string,
  *  \param colorBGR Color of rectangle in BGR
  */
 void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
-		     u_int colorBGR)
+             u_int colorBGR)
 {
   /**< top & bot */
   fillRectangle(colMin, rowMin, width, 1, colorBGR);
@@ -114,4 +143,3 @@ void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
   fillRectangle(colMin, rowMin, 1, height, colorBGR);
   fillRectangle(colMin + width, rowMin, 1, height, colorBGR);
 }
-
