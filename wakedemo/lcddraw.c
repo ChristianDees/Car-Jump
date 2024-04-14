@@ -145,11 +145,12 @@ void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
 }
 
 
-short widthCenter = screenWidth >> 1;
-short heightCenter = screenHeight >> 1;
 
-void clock_number(u_char digit, u_char pos){
+void clock_number(short digit, short pos, char reset){
     // just switch off of position then switch digit
+    short widthCenter = screenWidth >> 1;
+    short heightCenter = screenHeight >> 1;
+
     short col;
     short row;
     switch(pos){
@@ -170,127 +171,131 @@ void clock_number(u_char digit, u_char pos){
             row = screenHeight/4;
             break;
     }
-    switch(digit){
-        case 0:
-            draw_zero(col, row);
-            break;
-        case 1:
-            draw_one(col, row);
-            break;
-        case 2:
-            draw_two(col, row);
-            break;
-        case 3:
-            draw_three(col, row);
-            break;
-        case 4:
-            draw_four(col, row);
-            break;
-        case 5:
-            draw_five(col, row);
-            break;
-        case 6:
-            draw_six(col, row);
-            break;
-        case 7:
-            draw_seven(col, row);
-            break;
-        case 8:
-            draw_eight(col, row);
-            break;
-        case 9:
-            draw_nine(col, row);
-            break;
+    if (reset)
+        fillRectangle(col, row, 20, screenWidth-(row), BLACK);
+    else{
+        switch(digit){
+            case 0:
+                draw_zero(col, row);
+                break;
+            case 1:
+                draw_one(col, row);
+                break;
+            case 2:
+                draw_two(col, row);
+                break;
+            case 3:
+                draw_three(col, row);
+                break;
+            case 4:
+                draw_four(col, row);
+                break;
+            case 5:
+                draw_five(col, row);
+                break;
+            case 6:
+                draw_six(col, row);
+                break;
+            case 7:
+                draw_seven(col, row);
+                break;
+            case 8:
+                draw_eight(col, row);
+                break;
+            case 9:
+                draw_nine(col, row);
+                break;
+        }
     }
 }
 
 void clock_colon(){
     short centerCol = screenWidth >> 1;
     short centerRow = screenHeight >> 1;
-    fillRectangle(centerCol-3, centerRow-27, 6, 6, BLACK);
-    fillRectangle(centerCol-3, centerRow+27, 6, 6,BLACK);
+    fillRectangle(centerCol-3, centerRow-27, 6, 6, COLOR_RED);
+    fillRectangle(centerCol-3, centerRow+27, 6, 6,COLOR_RED);
 }
 
 
 void draw_zero(short col, short row){
 
-    fillRectangle(col, row, 20, screenWidth-(row), BLACK);
-    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, COLOR_BLUE);
+    fillRectangle(col, row, 20, screenWidth-(row), COLOR_RED);
+    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, BLACK);
 }
 
 
 void draw_one(short col, short row){
-    fillRectangle(col, row, 10, 5, BLACK);
-    fillRectangle(col+8, row, 5,screenWidth-(row), BLACK);
-    fillRectangle(col,row+(screenWidth-(row))-5, 20, 5, BLACK);
+    fillRectangle(col, row, 10, 5, COLOR_RED);
+    fillRectangle(col+8, row, 5,screenWidth-(row), COLOR_RED);
+    fillRectangle(col,row+(screenWidth-(row))-5, 20, 5, COLOR_RED);
 }
 
 void draw_two(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, BLACK); // top bar
-    fillRectangle(col+15, row, 5,depth_vertical, BLACK); // right vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // second bar
-    fillRectangle(col, row + depth_vertical, 5, depth_vertical, BLACK); // left vertical
-    fillRectangle(col, row + depth - 5, 20, 5, BLACK); // bottom bar
+    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
+    fillRectangle(col+15, row, 5,depth_vertical, COLOR_RED); // right vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
+    fillRectangle(col, row + depth_vertical, 5, depth_vertical, COLOR_RED); // left vertical
+    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
 }
 
 
 void draw_three(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, BLACK); // top bar
-    fillRectangle(col+15, row, 5,depth, BLACK); // right vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // second bar
-    fillRectangle(col, row + depth - 5, 20, 5, BLACK); // bottom bar
+    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
+    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
+    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
 }
 
 void draw_four(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 5,depth_vertical, BLACK); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // middle bar
-    fillRectangle(col+15, row, 5,depth, BLACK); // right vertical
+    fillRectangle(col, row, 5,depth_vertical, COLOR_RED); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // middle bar
+    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
 }
 
 void draw_five(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, BLACK); // top bar
-    fillRectangle(col, row, 5, depth_vertical, BLACK); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // second bar
-    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, BLACK); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, BLACK); // bottom bar
+    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
+    fillRectangle(col, row, 5, depth_vertical, COLOR_RED); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
+    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, COLOR_RED); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
 }
 
 void draw_six(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, BLACK); // top bar
-    fillRectangle(col, row, 5, depth, BLACK); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // second bar
-    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, BLACK); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, BLACK); // bottom bar
+    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
+    fillRectangle(col, row, 5, depth, COLOR_RED); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
+    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, COLOR_RED); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
 }
 
 void draw_seven(short col, short row){
-    fillRectangle(col, row, 20, 5, BLACK);
-    fillRectangle(col+15, row, 5,screenWidth-(row), BLACK);
+    fillRectangle(col, row, 20, 5, COLOR_RED);
+    fillRectangle(col+15, row, 5,screenWidth-(row), COLOR_RED);
 }
 
 void draw_eight(short col, short row){
-    fillRectangle(col, row, 20, screenWidth-(row), BLACK); // black rectangle
-    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, COLOR_BLUE); // hallow inside
-    fillRectangle(col, row + (screenWidth-row)/2, 20, 5, BLACK); // second bar
+    fillRectangle(col, row, 20, screenWidth-(row), COLOR_RED); // COLOR_RED rectangle
+    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, BLACK); // hallow inside
+    fillRectangle(col, row + (screenWidth-row)/2, 20, 5, COLOR_RED); // second bar
 }
 
 void draw_nine(short col, short row){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, BLACK); // top bar
-    fillRectangle(col, row, 5,depth_vertical, BLACK); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, BLACK); // middle bar
-    fillRectangle(col+15, row, 5,depth, BLACK); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, BLACK); // bottom bar
+    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
+    fillRectangle(col, row, 5,depth_vertical, COLOR_RED); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // middle bar
+    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
     
 }
