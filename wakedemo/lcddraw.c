@@ -176,34 +176,34 @@ void clock_number(short digit, short pos, char reset){
     else{
         switch(digit){
             case 0:
-                draw_zero(col, row);
+                draw_zero(col, row, COLOR_RED, BLACK);
                 break;
             case 1:
-                draw_one(col, row);
+                draw_one(col, row, COLOR_RED, BLACK);
                 break;
             case 2:
-                draw_two(col, row);
+                draw_two(col, row, COLOR_RED, BLACK);
                 break;
             case 3:
-                draw_three(col, row);
+                draw_three(col, row, COLOR_RED, BLACK);
                 break;
             case 4:
-                draw_four(col, row);
+                draw_four(col, row, COLOR_RED, BLACK);
                 break;
             case 5:
-                draw_five(col, row);
+                draw_five(col, row, COLOR_RED, BLACK);
                 break;
             case 6:
-                draw_six(col, row);
+                draw_six(col, row, COLOR_RED, BLACK);
                 break;
             case 7:
-                draw_seven(col, row);
+                draw_seven(col, row, COLOR_RED, BLACK);
                 break;
             case 8:
-                draw_eight(col, row);
+                draw_eight(col, row, COLOR_RED, BLACK);
                 break;
             case 9:
-                draw_nine(col, row);
+                draw_nine(col, row, COLOR_RED, BLACK);
                 break;
         }
     }
@@ -217,85 +217,85 @@ void clock_colon(){
 }
 
 
-void draw_zero(short col, short row){
+void draw_zero(short col, short row, u_int fgColor, u_int bgColor){
 
-    fillRectangle(col, row, 20, screenWidth-(row), COLOR_RED);
-    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, BLACK);
+    fillRectangle(col, row, 20, screenWidth-(row), fgColor);
+    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, bgColor);
 }
 
 
-void draw_one(short col, short row){
-    fillRectangle(col, row, 10, 5, COLOR_RED);
-    fillRectangle(col+8, row, 5,screenWidth-(row), COLOR_RED);
-    fillRectangle(col,row+(screenWidth-(row))-5, 20, 5, COLOR_RED);
+void draw_one(short col, short row, u_int fgColor, u_int bgColor){
+    fillRectangle(col, row, 10, 5, fgColor);
+    fillRectangle(col+8, row, 5,screenWidth-(row), fgColor);
+    fillRectangle(col,row+(screenWidth-(row))-5, 20, 5, fgColor);
 }
 
-void draw_two(short col, short row){
+void draw_two(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
-    fillRectangle(col+15, row, 5,depth_vertical, COLOR_RED); // right vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
-    fillRectangle(col, row + depth_vertical, 5, depth_vertical, COLOR_RED); // left vertical
-    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
+    fillRectangle(col, row, 20, 5, fgColor); // top bar
+    fillRectangle(col+15, row, 5,depth_vertical, fgColor); // right vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // second bar
+    fillRectangle(col, row + depth_vertical, 5, depth_vertical, fgColor); // left vertical
+    fillRectangle(col, row + depth - 5, 20, 5, fgColor); // bottom bar
 }
 
 
-void draw_three(short col, short row){
+void draw_three(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
-    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
-    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
+    fillRectangle(col, row, 20, 5, fgColor); // top bar
+    fillRectangle(col+15, row, 5,depth, fgColor); // right vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // second bar
+    fillRectangle(col, row + depth - 5, 20, 5, fgColor); // bottom bar
 }
 
-void draw_four(short col, short row){
+void draw_four(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 5,depth_vertical, COLOR_RED); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // middle bar
-    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
+    fillRectangle(col, row, 5,depth_vertical, fgColor); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // middle bar
+    fillRectangle(col+15, row, 5,depth, fgColor); // right vertical
 }
 
-void draw_five(short col, short row){
+void draw_five(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
-    fillRectangle(col, row, 5, depth_vertical, COLOR_RED); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
-    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, COLOR_RED); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
+    fillRectangle(col, row, 20, 5, fgColor); // top bar
+    fillRectangle(col, row, 5, depth_vertical, fgColor); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // second bar
+    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, fgColor); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, fgColor); // bottom bar
 }
 
-void draw_six(short col, short row){
+void draw_six(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
-    fillRectangle(col, row, 5, depth, COLOR_RED); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // second bar
-    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, COLOR_RED); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
+    fillRectangle(col, row, 20, 5, fgColor); // top bar
+    fillRectangle(col, row, 5, depth, fgColor); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // second bar
+    fillRectangle(col+15, row + depth_vertical, 5,depth_vertical, fgColor); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, fgColor); // bottom bar
 }
 
-void draw_seven(short col, short row){
-    fillRectangle(col, row, 20, 5, COLOR_RED);
-    fillRectangle(col+15, row, 5,screenWidth-(row), COLOR_RED);
+void draw_seven(short col, short row, u_int fgColor, u_int bgColor){
+    fillRectangle(col, row, 20, 5, fgColor);
+    fillRectangle(col+15, row, 5,screenWidth-(row), fgColor);
 }
 
-void draw_eight(short col, short row){
-    fillRectangle(col, row, 20, screenWidth-(row), COLOR_RED); // COLOR_RED rectangle
-    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, BLACK); // hallow inside
-    fillRectangle(col, row + (screenWidth-row)/2, 20, 5, COLOR_RED); // second bar
+void draw_eight(short col, short row, u_int fgColor, u_int bgColor){
+    fillRectangle(col, row, 20, screenWidth-(row), fgColor); // fgColor rectangle
+    fillRectangle(col+5, row+5, 10, screenWidth-(row)-10, bgColor); // hallow inside
+    fillRectangle(col, row + (screenWidth-row)/2, 20, 5, fgColor); // second bar
 }
 
-void draw_nine(short col, short row){
+void draw_nine(short col, short row, u_int fgColor, u_int bgColor){
     short depth = screenWidth-row;
     short depth_vertical = depth/2;
-    fillRectangle(col, row, 20, 5, COLOR_RED); // top bar
-    fillRectangle(col, row, 5,depth_vertical, COLOR_RED); // left vertical
-    fillRectangle(col, row + depth_vertical, 20, 5, COLOR_RED); // middle bar
-    fillRectangle(col+15, row, 5,depth, COLOR_RED); // right vertical
-    fillRectangle(col, row + depth - 5, 20, 5, COLOR_RED); // bottom bar
+    fillRectangle(col, row, 20, 5, fgColor); // top bar
+    fillRectangle(col, row, 5,depth_vertical, fgColor); // left vertical
+    fillRectangle(col, row + depth_vertical, 20, 5, fgColor); // middle bar
+    fillRectangle(col+15, row, 5,depth, fgColor); // right vertical
+    fillRectangle(col, row + depth - 5, 20, 5, fgColor); // bottom bar
     
 }

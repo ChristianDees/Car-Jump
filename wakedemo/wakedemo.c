@@ -5,7 +5,9 @@
 
 typedef enum{
     WAITING,
-    CHANGETIME
+    CHANGETIME,
+    PREGAME,
+    GAME
 } State;
 
 extern State current_state;
@@ -25,12 +27,20 @@ void refresh_1();
 void refresh_2();
 void refresh_3();
 void refresh_4();
+void update_vars();
 
-
+void blink_change_clock();
 void state_waiting();
 void state_change_time();
 void transition(State next_state);
 void display_clock();
+void countdown_numbers();
+void game();
+void state_pre_game();
+void state_game();
+
+void update_shape();
+void move_clouds();
 
 
 char blue = 31, green = 0, red = 31;
@@ -83,6 +93,10 @@ switch_interrupt_handler()
         case WAITING:
             if (button1 && button4)
                 transition(CHANGETIME);
+            else if (button1){
+                clearScreen(WHITE);
+                transition(PREGAME);
+            }
             break;
         case CHANGETIME:
             if (button2){// make it such that if hour is above 10, refresh position 1 and 2, otherwise refresh only 1
@@ -96,34 +110,44 @@ switch_interrupt_handler()
             } else if (button1 && button4)
                 transition(WAITING);
             break;
+        case PREGAME:
+            break;
+        case GAME:
+            if (button4){
+                clearScreen(BLACK);
+                transition(WAITING);
+            }
     }
 }
 
 
 // axis zero for col, axis 1 for row
 
-short drawPos[2] = {1,10}, controlPos[2] = {2, 10};
-short colVelocity = 1, colLimits[2] = {1, screenWidth/2};
+short drawPos_1[2] = {1,10}, controlPos_1[2] = {2, 10};
+short drawPos_2[2] = {50,40}, controlPos_2[2] = {51, 40};
+short colVelocity = 1, colLimits[2] = {1, screenWidth};
 
 void
 draw_ball(int col, int row, unsigned short color)
 {
-  fillRectangle(col-1, row-1, 3, 3, color);
+    fillRectangle(col, row, 30, 7, color);
+    fillRectangle(col+5, row-5, 15, 5, color);
+    fillRectangle(col+20, row-2, 5, 2, color);
 }
 
 
 void
-screen_update_ball()
+screen_update_ball(short drawPos[2], short controlPos[2])
 {
-  for (char axis = 0; axis < 2; axis ++) 
+  for (char axis = 0; axis < 2; axis ++)
     if (drawPos[axis] != controlPos[axis]) /* position changed? */
       goto redraw;
   return;			/* nothing to do */
  redraw:
-  draw_ball(drawPos[0], drawPos[1], COLOR_BLUE); /* erase */
-  for (char axis = 0; axis < 2; axis ++) 
+  draw_ball(drawPos[0], drawPos[1], COLOR_WHITE); /* erase */
+  for (char axis = 0; axis < 2; axis ++)
     drawPos[axis] = controlPos[axis];
-  draw_ball(drawPos[0], drawPos[1], COLOR_WHITE); /* draw */
+  draw_ball(drawPos[0], drawPos[1], COLOR_GRAY); /* draw */
 }
   
 
@@ -169,6 +193,12 @@ void wdt_c_handler()
         case CHANGETIME:
             state_change_time();
             break;
+        case PREGAME:
+            state_pre_game();
+            break;
+        case GAME:
+            state_game();
+            break;
     }
 }
     
@@ -202,7 +232,6 @@ void wdt_c_handler()
 
   
 //void update_shape();
-char change_time = 0;
 void main()
 {
   
@@ -218,19 +247,12 @@ void main()
   clearScreen(BLACK);
     update_time(0,0);
     clock_colon();
-  while (1) {			/* forever */
-//    if (redrawScreen) {
-//      redrawScreen = 0;
-//      update_shape();
-//    }
-      if (change_time) {
-          change_time;
-      }
+    
     P1OUT &= ~LED;	/* led off */
     or_sr(0x10);	/**< CPU OFF */
     P1OUT |= LED;	/* led on */
-  }
 }
+
 
 
 
@@ -308,8 +330,9 @@ screen_update_hourglass()
 void
 update_shape()
 {
-  screen_update_ball();
-  screen_update_hourglass();
+  screen_update_ball(drawPos_1, controlPos_1);
+  screen_update_ball(drawPos_2, controlPos_2);
+  //screen_update_hourglass();
 }
    
 
@@ -334,28 +357,23 @@ static int time_sec = 0;
 static char screen_off = 1;
 
 void state_change_time(){
-    secCount = 0;
-    totalSeconds = 0;
-    
-    // every second, take away what is on the screen
-    // another second goes by, put it back
-    time_sec++;
-    
-    if(time_sec >= 250){
-        time_sec = 0;
-        refresh_1();
-        refresh_3();
-        
-    }
+    blink_change_clock();
 }
 
+void state_pre_game(){
+    countdown_numbers();
+}
+
+void state_game(){
+    game();
+    move_clouds();
+}
 void transition(State next_state){
+    update_vars();
     current_state = next_state;
 }
 void display_clock(){
       secCount++;
-      
-      
       if (secCount >= 250){
           secCount = 0;
           totalSeconds++;
@@ -364,18 +382,92 @@ void display_clock(){
               minutes++;
               update_time(0,1);
           }
-          
       }
       if (minutes >= 60){
           hour++;
           update_time(1,0);
       }
-      
 }
 
 
 void blink_change_clock(){
-    refresh_1();
-    refresh_3();
+    // every second, take away what is on the screen
+    // another second goes by, put it back
+    secCount++;
+    if(secCount >= 250){
+        secCount = 0;
+        refresh_1();
+        refresh_3();
+    }
+}
+
+
+void update_vars(){
+    //
+    secCount = 0;
+    totalSeconds = 0;
     
+    
+}
+
+
+short cc = (screenWidth >> 1)-10;
+short cr = (screenHeight >> 1)-40;
+
+
+// change to how to play
+void countdown_numbers(){
+    // blank screen count down 3 2 1 in middle
+    // game then starts after 3 seconds of counting down
+    secCount++;
+    if (secCount==1)
+        draw_three(cc,cr,BLACK,WHITE);
+    if(secCount == 250){
+        clearScreen(COLOR_GRAY);
+        draw_two(cc,cr,BLACK,WHITE);
+    }
+    if(secCount == 500){
+        clearScreen(COLOR_GRAY);
+        draw_one(cc,cr,BLACK,WHITE);
+    }
+    if(secCount == 750){
+        clearScreen(WHITE);
+        transition(GAME);
+    }
+}
+
+void game(){
+    update_shape();
+}
+
+void move_clouds() {
+    secCount++;
+    if (secCount >= 10) { /* 10/sec */
+        secCount = 0;
+        /* move ball */
+        short oldCol_one = controlPos_1[0];
+        short newCol_one = oldCol_one + colVelocity;
+        
+        short oldCol_two = controlPos_2[0];
+        short newCol_two = oldCol_two + colVelocity;
+        if (newCol_one <= colLimits[0] || newCol_one >= colLimits[1]) {
+
+            if (newCol_one <= colLimits[0])
+                controlPos_1[0] = colLimits[1]; // move to the other end
+            else
+                controlPos_1[0] = colLimits[0]; // move to the other end
+        } else
+            controlPos_1[0] = newCol_one;
+        
+        
+        if (newCol_two <= colLimits[0] || newCol_two >= colLimits[1]) {
+
+            if (newCol_two <= colLimits[0])
+                controlPos_2[0] = colLimits[1]; // move to the other end
+            else
+                controlPos_2[0] = colLimits[0]; // move to the other end
+        } else
+            controlPos_2[0] = newCol_two;
+
+    }
 }

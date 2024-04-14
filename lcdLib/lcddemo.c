@@ -6,6 +6,7 @@
 #include "lcdutils.h"
 #include "lcddraw.h"
 void fillRectangle(u_char colMin, u_char rowMin, u_char width, u_char height, u_int colorBGR);
+void draw_cloud(short col, short row);
 /** Initializes everything, clears the screen, draws "hello" and a square */
 int
 main()
@@ -14,15 +15,13 @@ main()
   lcd_init();
   u_char width = screenWidth, height = screenHeight;
 
-  clearScreen(COLOR_BLUE);
+  clearScreen(WHITE);
   //drawPixel(screenWidth>>1, screenHeight>>1, BLACK);
-  
+    short centerCol = screenWidth >> 1;
+    short centerRow = screenHeight >> 1;
     
-    clock_colon();
-    clock_number(0, 1);
-    clock_number(9, 2);
-    clock_number(0, 3);
-    clock_number(0, 4);
+    draw_cloud(centerCol+10, centerRow-40);
+    draw_cloud(centerCol-45, centerRow-60);
     
 
     
@@ -35,8 +34,7 @@ main()
 
   //fillRectangle(30,30, 60, 60, COLOR_ORANGE);
     
-  short centerCol = screenWidth >> 1;
-  short centerRow = screenHeight >> 1;
+  
     
 //    int x = 0;
 //    int y = 0;
@@ -158,3 +156,9 @@ main()
 // draw_clock_number(20, width/4, 4, width-(width/4), BLACK);
 //                   NO, YES
 // add parameters for 1st digit, 2nd digit, 3rd digit, 4th digit
+void draw_cloud(short col, short row){
+    fillRectangle(col, row, 30, 7, COLOR_GRAY);
+    fillRectangle(col+5, row-5, 15, 5, COLOR_GRAY);
+    fillRectangle(col+20, row-2, 5, 2, COLOR_GRAY);
+}
+

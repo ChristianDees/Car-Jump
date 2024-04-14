@@ -69,16 +69,16 @@ void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
 
 
 void clock_number(short digit, short pos, char reset);
-void draw_zero(short col, short row);
-void draw_one(short col, short row);
-void draw_two(short col, short row);
-void draw_three(short col, short row);
-void draw_four(short col, short row);
-void draw_five(short col, short row);
-void draw_six(short col, short row);
-void draw_seven(short col, short row);
-void draw_eight(short col, short row);
-void draw_nine(short col, short row);
+void draw_zero(short col, short row, u_int fgColor, u_int bgColor);
+void draw_one(short col, short row, u_int fgColor, u_int bgColor);
+void draw_two(short col, short row, u_int fgColor, u_int bgColor);
+void draw_three(short col, short row, u_int fgColor, u_int bgColor);
+void draw_four(short col, short row, u_int fgColor, u_int bgColor);
+void draw_five(short col, short row, u_int fgColor, u_int bgColor);
+void draw_six(short col, short row, u_int fgColor, u_int bgColor);
+void draw_seven(short col, short row, u_int fgColor, u_int bgColor);
+void draw_eight(short col, short row, u_int fgColor, u_int bgColor);
+void draw_nine(short col, short row, u_int fgColor, u_int bgColor);
 void clock_colon();
 #endif // included
 
