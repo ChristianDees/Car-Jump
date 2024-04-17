@@ -43,7 +43,8 @@ void clearScreen(u_int colorBGR);
  */
 void drawString5x7(u_char col, u_char row, char *string,
            u_int fgColorBGR, u_int bgColorBGR);
-
+void drawString11x16(u_char col, u_char row, char *string,
+                     u_int fgColorBGR, u_int bgColorBGR);
 /** 5x7 font - this function draws background pixels
  *  Adapted from RobG's EduKit
  */

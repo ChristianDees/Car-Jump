@@ -93,7 +93,15 @@ void drawChar11x16(u_char rcol, u_char rrow, char c,
     row++;
   }
 }
-
+void drawString11x16(u_char col, u_char row, char *string,
+        u_int fgColorBGR, u_int bgColorBGR)
+{
+  u_char cols = col;
+  while (*string) {
+      drawChar11x16(cols, row, *string++, fgColorBGR, bgColorBGR);
+    cols += 15;
+  }
+}
 
 
 

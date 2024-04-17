@@ -7,7 +7,8 @@ typedef enum{
     WAITING,
     CHANGETIME,
     PREGAME,
-    GAME
+    GAME,
+    GAMEOVER
 } State;
 
 extern State current_state;
@@ -47,7 +48,8 @@ char jump_flag = 0;
 void screen_update_character();
 void character_jump();
 void screen_update_enemy();
-
+void state_game_over();
+void do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY);
 char draw_floor_during_jump = 0;
 
 char blue = 31, green = 0, red = 31;
@@ -57,6 +59,7 @@ unsigned char step = 0;
 short hour = 0;
 short minutes = 0;
 
+char overlap = 0;
 
 
 static char
@@ -129,11 +132,12 @@ switch_interrupt_handler()
                 clearScreen(BLACK);
                 transition(WAITING);
             }
+        
     }
 }
 
 
-short drawPos_enemy[2] = {90,screenHeight/2 +25}, controlPos_enemy[2] = {90,screenHeight/2 +25};
+short drawPos_enemy[2] = {90,screenHeight/2 +24}, controlPos_enemy[2] = {91,screenHeight/2 +24};
 short colEnemyVelocity = -10;
 
 
@@ -171,6 +175,12 @@ screen_update_road(short drawPos[2], short controlPos[2])
 
 
 
+short drawPosCharacter[2] = {10,screenHeight/2 +25};
+short controlPosCharacter[2] = {10,screenHeight/2 +24};
+
+
+short colVelocityCharacter = 10;
+short colLimitsCharacter[2] = {(screenHeight/2) +25 -50, (screenHeight/2) +25};
 
 
 
@@ -272,6 +282,9 @@ void wdt_c_handler()
         case GAME:
             state_game();
             break;
+        case GAMEOVER:
+            state_game_over();
+            break;
     }
 }
     
@@ -325,18 +338,20 @@ void main()
         or_sr(0x10);          /**< CPU OFF */
       }
       
-    if(current_state = GAME)
-        screen_update_ball(drawPos_one, controlPos_one);
-        screen_update_ball(drawPos_two, controlPos_two);
-        screen_update_road(drawPos_road_one, controlPos_road_one);
-        screen_update_road(drawPos_road_two, controlPos_road_two);
-        
-        
-        floor_bar();
-        screen_update_enemy();
-        screen_update_character();
-        
-        
+        if(current_state == GAME){
+            screen_update_ball(drawPos_one, controlPos_one);
+            screen_update_ball(drawPos_two, controlPos_two);
+            screen_update_road(drawPos_road_one, controlPos_road_one);
+            screen_update_road(drawPos_road_two, controlPos_road_two);
+            
+            
+            floor_bar();
+            screen_update_enemy();
+            screen_update_character();
+            do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
+            
+            
+        }
     }
 }
               
@@ -388,29 +403,7 @@ update_time(char change_hour, char change_minutes){
 }
 
 
-void
-screen_update_hourglass()
-{
-  static unsigned char row = screenHeight / 2, col = screenWidth / 2;
-  static char lastStep = 0;
-  
-  if (step == 0 || (lastStep > step)) {
-    clearScreen(COLOR_BLUE);
-    lastStep = 0;
-  } else {
-    for (; lastStep <= step; lastStep++) {
-      int startCol = col - lastStep;
-      int endCol = col + lastStep;
-      int width = 1 + endCol - startCol;
-      
-      // a color in this BGR encoding is BBBB BGGG GGGR RRRR
-      unsigned int color = (blue << 11) | (green << 5) | red;
-      
-      fillRectangle(startCol, row+lastStep, width, 1, color);
-      fillRectangle(startCol, row-lastStep, width, 1, color);
-    }
-  }
-}
+
 
 
     
@@ -459,6 +452,20 @@ void state_game(){
     
     
 }
+static char draw_once = 1;
+void state_game_over(){
+    if (draw_once){
+        fillRectangle(35, screenWidth/2 -15, 65, 45, COLOR_BLACK);
+        drawString11x16(40,screenWidth/2 -10, "Game", COLOR_RED, BLACK);
+        drawString11x16(40,screenWidth/2 +10, "Over", COLOR_RED, BLACK);
+        draw_once = 0;
+        redrawScreen = 1;
+    }
+    redrawScreen = 0;
+    
+}
+
+
 void transition(State next_state){
     update_vars();
     current_state = next_state;
@@ -551,6 +558,7 @@ void move_clouds() {
     count++;
     count2++;
     if (count2 >= 50){
+        
         count2=0;
         short oldCol_enemy = controlPos_enemy[0];
         short newCol_enemy = oldCol_enemy + colEnemyVelocity;  // colVelocity should be negative
@@ -566,7 +574,18 @@ void move_clouds() {
             // Otherwise, update the position as before
             controlPos_enemy[0] = newCol_enemy;
         }
+        
+        
+//        do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
+//        if(!overlap)
         redrawScreen = 1;  // Mark the screen for redrawing
+        
+        
+        
+        
+        
+        
+        
     }
     
     
@@ -665,12 +684,6 @@ void floor_bar(){
 
 
 
-short drawPosCharacter[2] = {10,screenHeight/2 +25};
-short controlPosCharacter[2] = {10,screenHeight/2 +24};
-
-
-short colVelocityCharacter = 10;
-short colLimitsCharacter[2] = {(screenHeight/2) +25 -50, (screenHeight/2) +25};
 
 void
 draw_character(int col, int row, unsigned short color1, unsigned short color2, unsigned short color3, unsigned short color4)
@@ -713,6 +726,7 @@ screen_update_character()
       goto redraw;
   return;            /* nothing to do */
  redraw:
+    
     // if row is equal to where road is
     // if current row between screenHeight/2+20 and screenHeight/2+20+3
     if (drawPosCharacter[1] <= screenHeight/2+25 && drawPosCharacter[1] >= screenHeight/2 +26 -4){
@@ -751,7 +765,10 @@ void character_jump() {
              
 
          }
-        redrawScreen = 1;  // Mark the screen for redrawing
+//         do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
+//         if (!overlap)
+             redrawScreen = 1;  // Mark the screen for redrawing
+        
         secCount = 0;
     }
     
@@ -763,30 +780,80 @@ void character_jump() {
 
 
 void
-draw_enemy(int col, int row, unsigned short color1, unsigned short color2)
+draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsigned short color3, unsigned short color4)
 {
     
     
-    for(char i = 0; i < 7; i++){
-        if (col+i >= 0){
-            fillRectangle(col+i, row-8, 1, 3,color1);
+    
+//    fillRectangle(col+3, row, 4,2, color1); //wheel left
+//    fillRectangle(col+12, row, 4,2, color1); //wheel right
+//    
+//    fillRectangle(col, row-1, 20, 1,color2);
+//    fillRectangle(col, row-2, 20, 1,color3);
+//
+//    fillRectangle(col, row-3, 20, 1,color3);
+//    
+//    fillRectangle(col, row-4, 20, 2,color3);
+//    
+//    fillRectangle(col, row-6, 20, 2,color2);
+//
+//    
+//    fillRectangle(col+4, row-11, 10, 5, color2); // top of car
+//    fillRectangle(col+7, row-9, 5, 3, color4); // top of car
+//    
+    
+    
+    
+    for(char i = 0; i < 4; i++){
+        if (col+3+i >= 0){
+            fillRectangle(col+3+i,row, 1, 2, color1);
         }
     }
-    for(char i = 0; i < 7; i++){
-        if (col+i >= 0){
-            fillRectangle(col+i,row-5, 1, 3, color2);
-        }
-    }
-    for(char i = 0; i < 7; i++){
-        if (col+i >= 0){
-            fillRectangle(col+i,row-2, 1, 2, color1);
+    for(char i = 0; i < 4; i++){
+        if (col+12+i >= 0){
+            fillRectangle(col+12+i,row, 1, 2, color1);
         }
     }
     
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-1, 1, 1, color2);
+        }
+    }
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-2, 1, 1, color3);
+        }
+    }
     
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-3, 1, 1, color3);
+        }
+    }
     
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-4, 1, 2, color3);
+        }
+    }
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-6, 1, 2, color2);
+        }
+    }
     
+    for(char i = 0; i < 10; i++){
+        if (col+4+i >= 0){
+            fillRectangle(col+4+i,row-11, 1, 5, color2);
+        }
+    }
     
+    for(char i = 0; i < 5; i++){
+        if (col+7+i >= 0){
+            fillRectangle(col+7+i,row-9, 1, 3, color4);
+        }
+    }
 }
 // wheels = color 1
 // bottom portion of car = gray for one layer
@@ -808,8 +875,27 @@ screen_update_enemy()
       goto redraw;
   return;            /* nothing to do */
  redraw:
-  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GRAY, COLOR_BLACK); /* erase */
+  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GRAY,COLOR_GRAY,COLOR_BLACK, COLOR_GRAY); /* erase */
   for (char axis = 0; axis < 2; axis ++)
     drawPos_enemy[axis] = controlPos_enemy[axis];
-  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GREEN, COLOR_GREEN); /* draw */
+  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_BLACK, COLOR_GREEN, COLOR_GREEN, WHITE); /* draw */
+}
+
+
+void 
+do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY) {
+    
+    // Check if one rectangle is on the left side of the other
+    if (cBRX < eTLX || eBRX < cTLX)
+        overlap = 0;
+    // Check if one rectangle is above the other
+    else if (cBRY < eTLY || eBRY < cTLY)
+        overlap = 0;
+    else
+        overlap = 1;
+    
+    if (overlap){
+        redrawScreen = 0;
+        transition(GAMEOVER);
+    }
 }
