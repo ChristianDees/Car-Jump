@@ -13,7 +13,7 @@ typedef enum{
 extern State current_state;
 // WARNING: LCD DISPLAY USES P1.0.  Do not touch!!!
 
-#define LED BIT6		/* note that bit zero req'd for display */
+#define LED BIT6        /* note that bit zero req'd for display */
 
 #define SW1 1
 #define SW2 2
@@ -42,6 +42,13 @@ void state_game();
 void update_shape();
 void move_clouds();
 
+void floor_bar();
+char jump_flag = 0;
+void screen_update_character();
+void character_jump();
+void screen_update_enemy();
+
+char draw_floor_during_jump = 0;
 
 char blue = 31, green = 0, red = 31;
 unsigned char step = 0;
@@ -50,23 +57,25 @@ unsigned char step = 0;
 short hour = 0;
 short minutes = 0;
 
+
+
 static char
 switch_update_interrupt_sense()
 {
   char p2val = P2IN;
   /* update switch interrupt to detect changes from current buttons */
-  P2IES |= (p2val & SWITCHES);	/* if switch up, sense down */
+  P2IES |= (p2val & SWITCHES);    /* if switch up, sense down */
   
   return p2val;
 }
 
-void 
-switch_init()			/* setup switch */
-{  
-  P2REN |= SWITCHES;		/* enables resistors for switches */
-  P2IE |= SWITCHES;		/* enable interrupts from switches */
-  P2OUT |= SWITCHES;		/* pull-ups for switches */
-  P2DIR &= ~SWITCHES;		/* set switches' bits for input */
+void
+switch_init()            /* setup switch */
+{
+  P2REN |= SWITCHES;        /* enables resistors for switches */
+  P2IE |= SWITCHES;        /* enable interrupts from switches */
+  P2OUT |= SWITCHES;        /* pull-ups for switches */
+  P2DIR &= ~SWITCHES;        /* set switches' bits for input */
 }
 
 int switches = 0;
@@ -113,6 +122,9 @@ switch_interrupt_handler()
         case PREGAME:
             break;
         case GAME:
+            if (button2){
+                jump_flag = 1;
+            }
             if (button4){
                 clearScreen(BLACK);
                 transition(WAITING);
@@ -121,20 +133,81 @@ switch_interrupt_handler()
 }
 
 
+short drawPos_enemy[2] = {90,screenHeight/2 +25}, controlPos_enemy[2] = {90,screenHeight/2 +25};
+short colEnemyVelocity = -10;
+
+
+
+
+
+
+short drawPos_road_one[2] = {0,screenHeight/2 +30}, controlPos_road_one[2] = {1,screenHeight/2 +30};
+
+short drawPos_road_two[2] = {85,screenHeight/2 +30}, controlPos_road_two[2] = {86,screenHeight/2 +30};
+
+
+short colRoadVelocity = -10;
+
+void
+draw_road(int col, int row, unsigned short color)
+{
+    fillRectangle(col, row, 30, 2, color);
+
+}
+
+void
+screen_update_road(short drawPos[2], short controlPos[2])
+{
+  for (char axis = 0; axis < 2; axis ++)
+    if (drawPos[axis] != controlPos[axis]) /* position changed? */
+      goto redraw;
+  return;            /* nothing to do */
+ redraw:
+  draw_road(drawPos[0], drawPos[1], COLOR_GRAY); /* erase */
+  for (char axis = 0; axis < 2; axis ++)
+    drawPos[axis] = controlPos[axis];
+  draw_road(drawPos[0], drawPos[1], COLOR_YELLOW); /* draw */
+}
+
+
+
+
+
+
+
+
+
 // axis zero for col, axis 1 for row
 
-short drawPos_1[2] = {1,10}, controlPos_1[2] = {2, 10};
-short drawPos_2[2] = {50,40}, controlPos_2[2] = {51, 40};
-short colVelocity = 1, colLimits[2] = {1, screenWidth};
+short drawPos_one[2] = {screenWidth/2 +60,10}, controlPos_one[2] = {screenWidth/2 +59, 10};
+short drawPos_two[2] = {screenWidth/2 +1,40}, controlPos_two[2] = {screenWidth/2, 40};
+
+
+short colVelocity = -10, colLimits[2] = {-50, screenWidth};
 
 void
 draw_ball(int col, int row, unsigned short color)
 {
-    fillRectangle(col, row, 30, 7, color);
-    fillRectangle(col+5, row-5, 15, 5, color);
-    fillRectangle(col+20, row-2, 5, 2, color);
+    //draw each vertical rectangle
+    for(char i = 0; i < 30; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row, 1, 7, color);
+        }
+    }
+    for(char i = 0; i < 15; i++){
+        if (col+5+i >= 0){
+            fillRectangle(col+5+i,row-5, 1, 5, color);
+        }
+    }
+    for(char i = 0; i < 5; i++){
+        if (col+20+i >= 0){
+            fillRectangle(col+20+i,row-2, 1, 2, color);
+        }
+    }
+    //fillRectangle(col, row, 30, 7, color);
+//       fillRectangle(col+5, row-5, 15, 5, color);
+//       fillRectangle(col+20, row-2, 5, 2, color);
 }
-
 
 void
 screen_update_ball(short drawPos[2], short controlPos[2])
@@ -142,16 +215,16 @@ screen_update_ball(short drawPos[2], short controlPos[2])
   for (char axis = 0; axis < 2; axis ++)
     if (drawPos[axis] != controlPos[axis]) /* position changed? */
       goto redraw;
-  return;			/* nothing to do */
+  return;            /* nothing to do */
  redraw:
-  draw_ball(drawPos[0], drawPos[1], COLOR_WHITE); /* erase */
+  draw_ball(drawPos[0], drawPos[1], COLOR_GRAY); /* erase */
   for (char axis = 0; axis < 2; axis ++)
     drawPos[axis] = controlPos[axis];
-  draw_ball(drawPos[0], drawPos[1], COLOR_GRAY); /* draw */
+  draw_ball(drawPos[0], drawPos[1], WHITE); /* draw */
 }
   
 
-short redrawScreen = 1;
+int redrawScreen = 0;
 u_int controlFontColor = COLOR_GREEN;
 
 
@@ -205,25 +278,25 @@ void wdt_c_handler()
     
     
 //  secCount ++;
-//  if (secCount >= 25) {		/* 10/sec */
-//   
-//    {				/* move ball */
+//  if (secCount >= 25) {        /* 10/sec */
+//
+//    {                /* move ball */
 //      short oldCol = controlPos[0];
 //      short newCol = oldCol + colVelocity;
 //      if (newCol <= colLimits[0] || newCol >= colLimits[1])
-//	colVelocity = -colVelocity;
+//    colVelocity = -colVelocity;
 //      else
-//	controlPos[0] = newCol;
+//    controlPos[0] = newCol;
 //    }
 //
-//    {				/* update hourglass */
+//    {                /* update hourglass */
 //      if (switches & SW3) green = (green + 1) % 64;
 //      if (switches & SW2) blue = (blue + 2) % 32;
 //      if (switches & SW1) red = (red - 3) % 32;
 //      if (step <= 30)
-//	step ++;
+//    step ++;
 //      else
-//	step = 0;
+//    step = 0;
 //      secCount = 0;
 //    }
 //    if (switches & SW4) return;
@@ -235,28 +308,42 @@ void wdt_c_handler()
 void main()
 {
   
-  P1DIR |= LED;		/**< Green led on when CPU on */
+  P1DIR |= LED;        /**< Green led on when CPU on */
   P1OUT |= LED;
   configureClocks();
   lcd_init();
   switch_init();
   
   enableWDTInterrupts();      /**< enable periodic interrupt */
-  or_sr(0x8);	              /**< GIE (enable interrupts) */
-  
+  or_sr(0x8);                  /**< GIE (enable interrupts) */
   clearScreen(BLACK);
     update_time(0,0);
     clock_colon();
-    
-    P1OUT &= ~LED;	/* led off */
-    or_sr(0x10);	/**< CPU OFF */
-    P1OUT |= LED;	/* led on */
+    for(;;) {
+      while (!redrawScreen) { /**< Pause CPU if screen doesn't need updating */
+        P1OUT &= ~BIT6;    /**< Green led off witHo CPU */
+        or_sr(0x10);          /**< CPU OFF */
+      }
+      
+    if(current_state = GAME)
+        screen_update_ball(drawPos_one, controlPos_one);
+        screen_update_ball(drawPos_two, controlPos_two);
+        screen_update_road(drawPos_road_one, controlPos_road_one);
+        screen_update_road(drawPos_road_two, controlPos_road_two);
+        
+        
+        floor_bar();
+        screen_update_enemy();
+        screen_update_character();
+        
+        
+    }
 }
+              
 
 
 
-
-void 
+void
 update_time(char change_hour, char change_minutes){
     short first_digit_h = hour/10;
     short second_digit_h = hour % 10;
@@ -323,15 +410,15 @@ screen_update_hourglass()
       fillRectangle(startCol, row-lastStep, width, 1, color);
     }
   }
-}  
+}
 
 
     
 void
 update_shape()
 {
-  screen_update_ball(drawPos_1, controlPos_1);
-  screen_update_ball(drawPos_2, controlPos_2);
+//  screen_update_ball(drawPos_1, controlPos_1);
+//  screen_update_ball(drawPos_2, controlPos_2);
   //screen_update_hourglass();
 }
    
@@ -339,9 +426,9 @@ update_shape()
 
 void
 __interrupt_vec(PORT2_VECTOR) Port_2(){
-  if (P2IFG & SWITCHES) {	      /* did a button cause this interrupt? */
-    P2IFG &= ~SWITCHES;		      /* clear pending sw interrupts */
-    switch_interrupt_handler();	/* single handler for all switches */
+  if (P2IFG & SWITCHES) {          /* did a button cause this interrupt? */
+    P2IFG &= ~SWITCHES;              /* clear pending sw interrupts */
+    switch_interrupt_handler();    /* single handler for all switches */
   }
 }
 
@@ -367,6 +454,10 @@ void state_pre_game(){
 void state_game(){
     game();
     move_clouds();
+    if (jump_flag)
+        character_jump();
+    
+    
 }
 void transition(State next_state){
     update_vars();
@@ -431,43 +522,277 @@ void countdown_numbers(){
         draw_one(cc,cr,BLACK,WHITE);
     }
     if(secCount == 750){
-        clearScreen(WHITE);
+        clearScreen(COLOR_GRAY);
         transition(GAME);
     }
 }
 
 void game(){
-    update_shape();
+    
 }
 
+
+
+
+
+
+
+
+
+
+
+
+int BALL_WIDTH = 30;
 void move_clouds() {
-    secCount++;
-    if (secCount >= 10) { /* 10/sec */
-        secCount = 0;
-        /* move ball */
-        short oldCol_one = controlPos_1[0];
-        short newCol_one = oldCol_one + colVelocity;
-        
-        short oldCol_two = controlPos_2[0];
-        short newCol_two = oldCol_two + colVelocity;
-        if (newCol_one <= colLimits[0] || newCol_one >= colLimits[1]) {
+    static short count = 0;
+    static short count2 = 0;
 
-            if (newCol_one <= colLimits[0])
-                controlPos_1[0] = colLimits[1]; // move to the other end
-            else
-                controlPos_1[0] = colLimits[0]; // move to the other end
-        } else
-            controlPos_1[0] = newCol_one;
-        
-        
-        if (newCol_two <= colLimits[0] || newCol_two >= colLimits[1]) {
+    P1OUT |= BIT6;  // Green LED on when CPU on
+    count++;
+    count2++;
+    if (count2 >= 50){
+        count2=0;
+        short oldCol_enemy = controlPos_enemy[0];
+        short newCol_enemy = oldCol_enemy + colEnemyVelocity;  // colVelocity should be negative
 
-            if (newCol_two <= colLimits[0])
-                controlPos_2[0] = colLimits[1]; // move to the other end
-            else
-                controlPos_2[0] = colLimits[0]; // move to the other end
-        } else
-            controlPos_2[0] = newCol_two;
-
+        // Check if the ball is completely off-screen on the left
+        if (newCol_enemy + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
+            // If off-screen, reset its position to just off-screen on the right
+            controlPos_enemy[0] = screenWidth;  // Start from the right side again
+            // You can adjust the vertical position randomly or keep it static as needed
+            // Example for random vertical position within limits:
+            /*controlPos[1] = 50; */ // Adjust range according to screen height
+        } else {
+            // Otherwise, update the position as before
+            controlPos_enemy[0] = newCol_enemy;
+        }
+        redrawScreen = 1;  // Mark the screen for redrawing
     }
+    
+    
+    
+    
+    
+    
+    
+    if (count >= 90) {  // Adjust frequency as needed
+        
+        short oldCol_one = controlPos_one[0];
+        short newCol_one = oldCol_one + colVelocity;  // colVelocity should be negative
+
+        // Check if the ball is completely off-screen on the left
+        if (newCol_one <= -30) {  // BALL_WIDTH is the width of the ball
+            // If off-screen, reset its position to just off-screen on the right
+            controlPos_one[0] = screenWidth;  // Start from the right side again
+            // You can adjust the vertical position randomly or keep it static as needed
+            // Example for random vertical position within limits:
+            /*controlPos[1] = 50; */ // Adjust range according to screen height
+        } else {
+            // Otherwise, update the position as before
+            controlPos_one[0] = newCol_one;
+        }
+        
+        short oldCol_two = controlPos_two[0];
+        short newCol_two = oldCol_two + colVelocity;  // colVelocity should be negative
+
+        // Check if the ball is completely off-screen on the left
+        if (newCol_two + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
+            // If off-screen, reset its position to just off-screen on the right
+            controlPos_two[0] = screenWidth;  // Start from the right side again
+            // You can adjust the vertical position randomly or keep it static as needed
+            // Example for random vertical position within limits:
+            /*controlPos[1] = 50; */ // Adjust range according to screen height
+        } else {
+            // Otherwise, update the position as before
+            controlPos_two[0] = newCol_two;
+        }
+        
+        
+        short oldCol_road_one = controlPos_road_one[0];
+        short newCol_road_one = oldCol_road_one + colRoadVelocity;  // colVelocity should be negative
+
+        // Check if the ball is completely off-screen on the left
+        if (newCol_road_one + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
+            // If off-screen, reset its position to just off-screen on the right
+            controlPos_road_one[0] = screenWidth;  // Start from the right side again
+            // You can adjust the vertical position randomly or keep it static as needed
+            // Example for random vertical position within limits:
+            /*controlPos[1] = 50; */ // Adjust range according to screen height
+        } else {
+            // Otherwise, update the position as before
+            controlPos_road_one[0] = newCol_road_one;
+        }
+        
+        short oldCol_road_two = controlPos_road_two[0];
+        short newCol_road_two = oldCol_road_two + colRoadVelocity;  // colVelocity should be negative
+
+        // Check if the ball is completely off-screen on the left
+        if (newCol_road_two + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
+            // If off-screen, reset its position to just off-screen on the right
+            controlPos_road_two[0] = screenWidth;  // Start from the right side again
+            // You can adjust the vertical position randomly or keep it static as needed
+            // Example for random vertical position within limits:
+            /*controlPos[1] = 50; */ // Adjust range according to screen height
+        } else {
+            // Otherwise, update the position as before
+            controlPos_road_two[0] = newCol_road_two;
+        }
+    
+        redrawScreen = 1;  // Mark the screen for redrawing
+        count = 0;
+        
+        
+    }
+    P1OUT &= ~BIT6;  // Turn off the LED
+}
+
+
+char floor_done = 1;
+char floor_done2 = 1;
+char floor_up = 1;
+void floor_bar(){
+    if (floor_done){
+        fillRectangle(0,screenHeight/2+20,screenWidth,3,BLACK);
+        fillRectangle(0,screenHeight/2+40,screenWidth,3,BLACK);
+        floor_done = 0;
+    }
+    if (draw_floor_during_jump){
+        if (floor_up){
+            fillRectangle(10,(screenHeight/2+ 20), 30, 3, BLACK);
+            floor_up = 0;
+        }
+        
+    }
+}
+
+
+
+
+
+
+
+
+short drawPosCharacter[2] = {10,screenHeight/2 +25};
+short controlPosCharacter[2] = {10,screenHeight/2 +24};
+
+
+short colVelocityCharacter = 10;
+short colLimitsCharacter[2] = {(screenHeight/2) +25 -40, (screenHeight/2) +25};
+
+void
+draw_character(int col, int row, unsigned short color1, unsigned short color2, unsigned short color3)
+{
+    fillRectangle(col+3, row, 4,2, color1); //wheel left
+    fillRectangle(col+12, row, 4,2, color1); //wheel right
+    fillRectangle(col, row-6, 20, 6, color2); //bottom of car
+    fillRectangle(col+4, row-11, 10, 5, color2); // top of car
+    fillRectangle(col+7, row-9, 5, 4, color3); // top of car
+}
+
+void
+screen_update_character()
+{
+  for (char axis = 0; axis < 2; axis ++)
+    if (drawPosCharacter[axis] != controlPosCharacter[axis]) /* position changed? */
+      goto redraw;
+  return;            /* nothing to do */
+ redraw:
+  draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_GRAY,COLOR_GRAY,COLOR_GRAY); /* erase */
+  for (char axis = 0; axis < 2; axis ++)
+    drawPosCharacter[axis] = controlPosCharacter[axis];
+  draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_BLACK, COLOR_BLUE, WHITE); /* draw */
+}
+
+
+
+void character_jump() {
+    
+    static int secCount = 0;
+    static int secCountTwo = 0;
+     secCount ++;
+     if (secCount >= 25) {        /* 10/sec */
+         secCountTwo++;
+                     /* move ball */
+         
+         short oldRow = controlPosCharacter[1];
+         short newRow = oldRow - colVelocityCharacter;
+         if (newRow <= screenHeight/2+20){
+             draw_floor_during_jump = 1;
+             floor_up = 1;
+         }else
+             draw_floor_during_jump = 0;
+         if (newRow <= colLimitsCharacter[0] || newRow >= colLimitsCharacter[1] )
+            colVelocityCharacter = -colVelocityCharacter;
+         else
+             controlPosCharacter[1] = newRow;
+       
+         if (newRow == screenHeight/2 +24 && secCountTwo){
+             draw_floor_during_jump = 0;
+             floor_done2 = 1;
+             jump_flag = 0;
+             secCountTwo = 0;
+             
+
+         }
+        redrawScreen = 1;  // Mark the screen for redrawing
+        secCount = 0;
+    }
+    
+}
+
+//2
+//2
+//2
+
+
+void
+draw_enemy(int col, int row, unsigned short color1, unsigned short color2)
+{
+    
+    
+    for(char i = 0; i < 7; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i, row-8, 1, 3,color1);
+        }
+    }
+    for(char i = 0; i < 7; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-5, 1, 3, color2);
+        }
+    }
+    for(char i = 0; i < 7; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-2, 1, 2, color1);
+        }
+    }
+    
+    
+    
+    
+    
+}
+// wheels = color 1
+// bottom portion of car = gray for one layer
+// bottom portion two = black
+// top portion of car = gray
+
+// color1 = gray
+// color1 = gray
+// color2 = black
+// color
+
+  
+
+void
+screen_update_enemy()
+{
+  for (char axis = 0; axis < 2; axis ++)
+    if (drawPos_enemy[axis] != controlPos_enemy[axis]) /* position changed? */
+      goto redraw;
+  return;            /* nothing to do */
+ redraw:
+  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GRAY, COLOR_BLACK); /* erase */
+  for (char axis = 0; axis < 2; axis ++)
+    drawPos_enemy[axis] = controlPos_enemy[axis];
+  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GREEN, COLOR_GREEN); /* draw */
 }
