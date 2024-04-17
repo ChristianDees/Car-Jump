@@ -656,13 +656,6 @@ void floor_bar(){
         fillRectangle(0,screenHeight/2+40,screenWidth,3,BLACK);
         floor_done = 0;
     }
-    if (draw_floor_during_jump){
-        if (floor_up){
-            fillRectangle(10,(screenHeight/2+ 20), 30, 3, BLACK);
-            floor_up = 0;
-        }
-        
-    }
 }
 
 
@@ -677,16 +670,39 @@ short controlPosCharacter[2] = {10,screenHeight/2 +24};
 
 
 short colVelocityCharacter = 10;
-short colLimitsCharacter[2] = {(screenHeight/2) +25 -40, (screenHeight/2) +25};
+short colLimitsCharacter[2] = {(screenHeight/2) +25 -50, (screenHeight/2) +25};
 
 void
-draw_character(int col, int row, unsigned short color1, unsigned short color2, unsigned short color3)
+draw_character(int col, int row, unsigned short color1, unsigned short color2, unsigned short color3, unsigned short color4)
 {
+//    fillRectangle(col+3, row, 4,2, color1); //wheel left
+//    fillRectangle(col+12, row, 4,2, color1); //wheel right
+//    fillRectangle(col, row-6, 20, 6, color2); //bottom of car
+//    fillRectangle(col+4, row-11, 10, 5, color2); // top of car
+//    fillRectangle(col+7, row-9, 5, 4, color3); // top of car
+//    
+//    
+    
     fillRectangle(col+3, row, 4,2, color1); //wheel left
     fillRectangle(col+12, row, 4,2, color1); //wheel right
-    fillRectangle(col, row-6, 20, 6, color2); //bottom of car
+    
+    fillRectangle(col, row-1, 20, 1,color2);
+    fillRectangle(col, row-2, 20, 1,color3);
+
+    fillRectangle(col, row-3, 20, 1,color3);
+    
+    fillRectangle(col, row-4, 20, 2,color3);
+    
+    fillRectangle(col, row-6, 20, 2,color2);
+
+    
     fillRectangle(col+4, row-11, 10, 5, color2); // top of car
-    fillRectangle(col+7, row-9, 5, 4, color3); // top of car
+    fillRectangle(col+7, row-9, 5, 3, color4); // top of car
+    
+    
+    // color 1 = wheels = gray
+    
+    
 }
 
 void
@@ -697,10 +713,16 @@ screen_update_character()
       goto redraw;
   return;            /* nothing to do */
  redraw:
-  draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_GRAY,COLOR_GRAY,COLOR_GRAY); /* erase */
+    // if row is equal to where road is
+    // if current row between screenHeight/2+20 and screenHeight/2+20+3
+    if (drawPosCharacter[1] <= screenHeight/2+25 && drawPosCharacter[1] >= screenHeight/2 +26 -4){
+        draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_GRAY,COLOR_GRAY,COLOR_BLACK, COLOR_GRAY); /* erase */
+    }else{
+        draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_GRAY,COLOR_GRAY,COLOR_GRAY, COLOR_GRAY); /* erase */
+    }
   for (char axis = 0; axis < 2; axis ++)
     drawPosCharacter[axis] = controlPosCharacter[axis];
-  draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_BLACK, COLOR_BLUE, WHITE); /* draw */
+  draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_BLACK, COLOR_BLUE, COLOR_BLUE, WHITE); /* draw */
 }
 
 
@@ -716,19 +738,14 @@ void character_jump() {
          
          short oldRow = controlPosCharacter[1];
          short newRow = oldRow - colVelocityCharacter;
-         if (newRow <= screenHeight/2+20){
-             draw_floor_during_jump = 1;
-             floor_up = 1;
-         }else
-             draw_floor_during_jump = 0;
+         
          if (newRow <= colLimitsCharacter[0] || newRow >= colLimitsCharacter[1] )
             colVelocityCharacter = -colVelocityCharacter;
          else
              controlPosCharacter[1] = newRow;
        
          if (newRow == screenHeight/2 +24 && secCountTwo){
-             draw_floor_during_jump = 0;
-             floor_done2 = 1;
+             
              jump_flag = 0;
              secCountTwo = 0;
              
