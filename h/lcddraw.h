@@ -81,4 +81,3 @@ void draw_eight(short col, short row);
 void draw_nine(short col, short row);
 void clock_colon();
 #endif // included
-

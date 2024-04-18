@@ -6,7 +6,9 @@
 #include "lcdutils.h"
 #include "lcddraw.h"
 void fillRectangle(u_char colMin, u_char rowMin, u_char width, u_char height, u_int colorBGR);
-void draw_cloud(short col, short row);
+void draw_car(short col, short row);
+void draw_car2(short col, short row);
+
 /** Initializes everything, clears the screen, draws "hello" and a square */
 int
 main()
@@ -20,10 +22,10 @@ main()
     short centerCol = screenWidth >> 1;
     short centerRow = screenHeight >> 1;
     
-    draw_cloud(centerCol+10, centerRow-40);
-    draw_cloud(centerCol-45, centerRow-60);
+    draw_car2(centerCol+10, centerRow-40);
     
-
+    
+    
     
     
     
@@ -162,3 +164,27 @@ void draw_cloud(short col, short row){
     fillRectangle(col+20, row-2, 5, 2, COLOR_GRAY);
 }
 
+void draw_car(short col, short row){
+    fillRectangle(col+3, row, 4,2, COLOR_BLACK); //wheel left
+    fillRectangle(col+12, row, 4,2, COLOR_BLACK); //wheel right
+    fillRectangle(col, row-6, 20, 6, COLOR_BLUE); //bottom of car
+    fillRectangle(col+4, row-11, 10, 5, COLOR_BLUE); // top of car
+    fillRectangle(col+7, row-9, 5, 4, WHITE); // top of car
+}
+
+void draw_car2(short col, short row){
+    fillRectangle(col+3, row, 4,2, BLACK); //wheel left
+    fillRectangle(col+12, row, 4,2, BLACK); //wheel right
+    
+    fillRectangle(col, row-1, 20, 1,COLOR_GREEN);
+    
+    fillRectangle(col, row-3, 20, 1,BLACK);
+    
+    fillRectangle(col, row-4, 20, 2,COLOR_BLUE);
+    
+    fillRectangle(col, row-6, 20, 2,COLOR_YELLOW);
+
+    
+    fillRectangle(col+4, row-11, 10, 5, COLOR_BLUE); // top of car
+    fillRectangle(col+7, row-9, 5, 3, COLOR_WHITE); // top of car
+}
