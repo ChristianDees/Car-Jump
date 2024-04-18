@@ -381,7 +381,7 @@ void main()
             floor_bar();
             screen_update_enemy(colorBGR);
             screen_update_character();
-            if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+19, drawPos_enemy[1]))
+            if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
                 transition(GAMEOVER);
             
             
@@ -999,7 +999,6 @@ draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsig
 //    
     
     
-    
     for(char i = 0; i < 4; i++){
         if (col+3+i >= 0){
             fillRectangle(col+3+i,row, 1, 2, color1);
@@ -1040,14 +1039,14 @@ draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsig
     }
     
     for(char i = 0; i < 10; i++){
-        if (col+4+i >= 0){
-            fillRectangle(col+4+i,row-11, 1, 5, color2);
+        if (col+6+i >= 0){
+            fillRectangle(col+6+i,row-11, 1, 5, color2);
         }
     }
     
     for(char i = 0; i < 5; i++){
-        if (col+7+i >= 0){
-            fillRectangle(col+7+i,row-9, 1, 3, color4);
+        if (col+8+i >= 0){
+            fillRectangle(col+8+i,row-9, 1, 3, color4);
         }
     }
 }
