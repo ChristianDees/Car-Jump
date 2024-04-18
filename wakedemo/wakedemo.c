@@ -1,7 +1,9 @@
 #include <msp430.h>
 #include <libTimer.h>
+#include <stdio.h>
 #include "lcdutils.h"
 #include "lcddraw.h"
+
 
 typedef enum{
     WAITING,
@@ -22,6 +24,7 @@ extern State current_state;
 #define SW4 8
 
 #define SWITCHES 15
+void int_to_string_simple(int n, char *str, size_t size);
 void update_time(char change_hour, char change_minutes);
 void refresh_screen();
 void refresh_1();
@@ -29,7 +32,7 @@ void refresh_2();
 void refresh_3();
 void refresh_4();
 void update_vars();
-
+void display_score();
 void blink_change_clock();
 void state_waiting();
 void state_change_time();
@@ -42,16 +45,18 @@ void state_game();
 
 void update_shape();
 void move_clouds();
-
+void screen_update_score();
 void floor_bar();
 char jump_flag = 0;
 void screen_update_character();
 void character_jump();
-void screen_update_enemy();
+void screen_update_enemy(u_int colorBGR);
 void state_game_over();
-void do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY);
-char draw_floor_during_jump = 0;
+char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY);
+char floor_done = 1;
 
+int high_score = 0;
+int current_score = 0;
 char blue = 31, green = 0, red = 31;
 unsigned char step = 0;
 
@@ -59,7 +64,28 @@ unsigned char step = 0;
 short hour = 0;
 short minutes = 0;
 
-char overlap = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 static char
@@ -132,6 +158,11 @@ switch_interrupt_handler()
                 clearScreen(BLACK);
                 transition(WAITING);
             }
+        case GAMEOVER:
+            if (button4){
+                clearScreen(COLOR_GRAY);
+                transition(GAME);
+            }
         
     }
 }
@@ -180,7 +211,7 @@ short controlPosCharacter[2] = {10,screenHeight/2 +24};
 
 
 short colVelocityCharacter = 10;
-short colLimitsCharacter[2] = {(screenHeight/2) +25 -50, (screenHeight/2) +25};
+short colLimitsCharacter[2] = {(screenHeight/2) +25 -60, (screenHeight/2) +25};
 
 
 
@@ -190,7 +221,7 @@ short colLimitsCharacter[2] = {(screenHeight/2) +25 -50, (screenHeight/2) +25};
 // axis zero for col, axis 1 for row
 
 short drawPos_one[2] = {screenWidth/2 +60,10}, controlPos_one[2] = {screenWidth/2 +59, 10};
-short drawPos_two[2] = {screenWidth/2 +1,40}, controlPos_two[2] = {screenWidth/2, 40};
+short drawPos_two[2] = {screenWidth/2 +1,30}, controlPos_two[2] = {screenWidth/2, 30};
 
 
 short colVelocity = -10, colLimits[2] = {-50, screenWidth};
@@ -315,7 +346,7 @@ void wdt_c_handler()
 //    if (switches & SW4) return;
 //    redrawScreen = 1;
 //  }
-
+u_int colorBGR;
   
 //void update_shape();
 void main()
@@ -339,6 +370,8 @@ void main()
       }
       
         if(current_state == GAME){
+            screen_update_score();
+            
             screen_update_ball(drawPos_one, controlPos_one);
             screen_update_ball(drawPos_two, controlPos_two);
             screen_update_road(drawPos_road_one, controlPos_road_one);
@@ -346,9 +379,10 @@ void main()
             
             
             floor_bar();
-            screen_update_enemy();
+            screen_update_enemy(colorBGR);
             screen_update_character();
-            do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
+            if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+19, drawPos_enemy[1]))
+                transition(GAMEOVER);
             
             
         }
@@ -449,15 +483,44 @@ void state_game(){
     move_clouds();
     if (jump_flag)
         character_jump();
+    display_score();
     
     
 }
+
+
+char score_once = 1;
+char seconds_score = 0;
+void display_score(){
+    if (score_once){
+        char str[20]; // Adjust the size as needed
+        int_to_string_simple(high_score, str, sizeof(str));
+        drawString5x7(40, 135, str, BLACK, COLOR_GRAY);
+        
+        drawString5x7(20, 135, "HI:", BLACK, COLOR_GRAY);
+        drawString5x7(70, 135, "Score:", BLACK, COLOR_GRAY);
+        redrawScreen=1;
+        score_once = 0;
+    }
+    seconds_score++;
+    if (seconds_score >= 250){
+        seconds_score = 0;
+        current_score++;
+    }
+    
+}
+
+
+
+
+
+
 static char draw_once = 1;
 void state_game_over(){
     if (draw_once){
-        fillRectangle(35, screenWidth/2 -15, 65, 45, COLOR_BLACK);
-        drawString11x16(40,screenWidth/2 -10, "Game", COLOR_RED, BLACK);
-        drawString11x16(40,screenWidth/2 +10, "Over", COLOR_RED, BLACK);
+        fillRectangle(30, screenWidth/2 -15, 65, 45, COLOR_BLACK);
+        drawString11x16(35,screenWidth/2 -10, "Game", COLOR_RED, BLACK);
+        drawString11x16(35,screenWidth/2 +10, "Over", COLOR_RED, BLACK);
         draw_once = 0;
         redrawScreen = 1;
     }
@@ -499,11 +562,84 @@ void blink_change_clock(){
     }
 }
 
-
+static short count = 0;
+static short count2 = 0;
 void update_vars(){
     //
+    
+    int x = ((high_score + drawPosCharacter[1]) % 4) +1;
+    if (x == 1){
+        colorBGR = COLOR_GREEN;
+    } else if (x == 2){
+        colorBGR = COLOR_RED;
+    } else if (x == 3){
+        colorBGR = COLOR_PURPLE;
+    } else if (x == 4){
+        colorBGR = COLOR_ORANGE;
+    }
+    
+    
+    
+    
+    
+    count = 0;
+    count2 = 0;
     secCount = 0;
     totalSeconds = 0;
+    
+    drawPos_enemy[0] = 90;
+    drawPos_enemy[1] = screenHeight/2 +24;
+    controlPos_enemy[0] = 91;
+    controlPos_enemy[1] = screenHeight/2 +24;
+
+    
+    drawPos_road_one[0] = 0;
+    drawPos_road_one[1] = screenHeight/2 +30;
+    controlPos_road_one[0] = 1;
+    controlPos_road_one[1] = screenHeight/2 +30;
+    
+    
+    
+    drawPos_road_two[0] = 85;
+    drawPos_road_two[1] = screenHeight/2 +30;
+    controlPos_road_two[0] = 86;
+    controlPos_road_two[1] = screenHeight/2 +30;
+
+    
+    drawPosCharacter[0] = 10;
+    drawPosCharacter[1] = screenHeight/2 +25;
+    controlPosCharacter[0] = 10;
+    controlPosCharacter[1] = screenHeight/2 +24;
+
+    drawPos_one[0] = screenWidth/2 +60;
+    drawPos_one[1] = 10;
+    controlPos_one[0] = screenWidth/2 +59;
+    controlPos_one[1] = 10;
+    
+    
+    drawPos_two[0] = screenWidth/2 +1;
+    drawPos_two[1] = 30;
+    controlPos_two[0] = screenWidth/2;
+    controlPos_two[1] = 30;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    floor_done = 1;
+    jump_flag = 0;
+    draw_once = 1;
+    score_once = 1;
+    current_score = 0;
+    
+    
+    
+    
+    
     
     
 }
@@ -551,8 +687,7 @@ void game(){
 
 int BALL_WIDTH = 30;
 void move_clouds() {
-    static short count = 0;
-    static short count2 = 0;
+    
 
     P1OUT |= BIT6;  // Green LED on when CPU on
     count++;
@@ -566,6 +701,21 @@ void move_clouds() {
         // Check if the ball is completely off-screen on the left
         if (newCol_enemy + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
             // If off-screen, reset its position to just off-screen on the right
+            int x;
+            if (current_score > high_score)
+                x = (current_score - high_score) + 1;
+            else
+                x = (high_score - current_score) + 1;
+            x = x%4;
+            if (x == 1){
+                colorBGR = COLOR_GREEN;
+            } else if (x == 2){
+                colorBGR = COLOR_RED;
+            } else if (x == 3){
+                colorBGR = COLOR_PURPLE;
+            } else if (x == 4){
+                colorBGR = COLOR_ORANGE;
+            }
             controlPos_enemy[0] = screenWidth;  // Start from the right side again
             // You can adjust the vertical position randomly or keep it static as needed
             // Example for random vertical position within limits:
@@ -666,9 +816,8 @@ void move_clouds() {
 }
 
 
-char floor_done = 1;
-char floor_done2 = 1;
-char floor_up = 1;
+
+
 void floor_bar(){
     if (floor_done){
         fillRectangle(0,screenHeight/2+20,screenWidth,3,BLACK);
@@ -737,6 +886,53 @@ screen_update_character()
   for (char axis = 0; axis < 2; axis ++)
     drawPosCharacter[axis] = controlPosCharacter[axis];
   draw_character(drawPosCharacter[0], drawPosCharacter[1], COLOR_BLACK, COLOR_BLUE, COLOR_BLUE, WHITE); /* draw */
+}
+
+
+void int_to_string_simple(int n, char *str, size_t size) {
+    if (n == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
+    }
+
+    int i = 0;
+    while (n != 0 && i < size - 1) {
+        int digit = n % 10;
+        str[i++] = '0' + digit;
+        n /= 10;
+    }
+    str[i] = '\0';
+
+    // Reverse the string
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+// Usage
+
+
+
+
+
+
+
+
+
+void screen_update_score(){
+    if (current_score > high_score)
+        high_score = current_score;
+    char str[20]; // Adjust the size as needed
+    int_to_string_simple(current_score, str, sizeof(str));
+    drawString5x7(110, 135, str, BLACK, COLOR_GRAY);
+    
 }
 
 
@@ -868,7 +1064,7 @@ draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsig
   
 
 void
-screen_update_enemy()
+screen_update_enemy(u_int colorBGR)
 {
   for (char axis = 0; axis < 2; axis ++)
     if (drawPos_enemy[axis] != controlPos_enemy[axis]) /* position changed? */
@@ -878,24 +1074,24 @@ screen_update_enemy()
   draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_GRAY,COLOR_GRAY,COLOR_BLACK, COLOR_GRAY); /* erase */
   for (char axis = 0; axis < 2; axis ++)
     drawPos_enemy[axis] = controlPos_enemy[axis];
-  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_BLACK, COLOR_GREEN, COLOR_GREEN, WHITE); /* draw */
+    
+    
+  
+  draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_BLACK, colorBGR, colorBGR, WHITE); /* draw */
 }
 
 
-void 
-do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY) {
-    
+char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY) {
     // Check if one rectangle is on the left side of the other
     if (cBRX < eTLX || eBRX < cTLX)
-        overlap = 0;
+        return 0;
     // Check if one rectangle is above the other
-    else if (cBRY < eTLY || eBRY < cTLY)
-        overlap = 0;
-    else
-        overlap = 1;
+    if (cBRY < eTLY || eBRY < cTLY)
+        return 0;
     
-    if (overlap){
-        redrawScreen = 0;
-        transition(GAMEOVER);
-    }
+    // If none of the above conditions are met, there's an overlap
+    return 1;
 }
+
+
+
