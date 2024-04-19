@@ -144,12 +144,12 @@ void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
              u_int colorBGR)
 {
   /**< top & bot */
-  fillRectangle(colMin, rowMin, width, 1, colorBGR);
-  fillRectangle(colMin, rowMin + height, width, 1, colorBGR);
+  fillRectangle(colMin, rowMin, width, 3, colorBGR);
+  fillRectangle(colMin, rowMin + height-3, width, 3, colorBGR);
 
   /**< left & right */
-  fillRectangle(colMin, rowMin, 1, height, colorBGR);
-  fillRectangle(colMin + width, rowMin, 1, height, colorBGR);
+  fillRectangle(colMin, rowMin, 3, height, colorBGR);
+  fillRectangle(colMin + width-3, rowMin, 3, height, colorBGR);
 }
 
 

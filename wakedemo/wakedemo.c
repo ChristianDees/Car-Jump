@@ -10,6 +10,7 @@ typedef enum{
     CHANGETIME,
     PREGAME,
     GAME,
+    PAUSE,
     GAMEOVER
 } State;
 
@@ -42,7 +43,7 @@ void countdown_numbers();
 void game();
 void state_pre_game();
 void state_game();
-
+char pause_flag = 0;
 void update_shape();
 void move_clouds();
 void screen_update_score();
@@ -51,19 +52,24 @@ char jump_flag = 0;
 void screen_update_character();
 void character_jump();
 void screen_update_enemy(u_int colorBGR);
+void screen_update_enemy_two(u_int colorBGR);
+char enable_second_enemy = 0;
 void state_game_over();
 char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY);
 char floor_done = 1;
-
+void state_pause();
+void display_pause();
 int high_score = 0;
 int current_score = 0;
 char blue = 31, green = 0, red = 31;
 unsigned char step = 0;
-
-
+char display_pause_once = 1;
+char reset_pause_flag= 0;
+void reset_pause();
 short hour = 0;
 short minutes = 0;
-
+char overlap_flag = 0;
+char seconds = 0;
 
 
 
@@ -145,12 +151,14 @@ switch_interrupt_handler()
                 changeTime = 1;
                 minutes++;
                 update_time(0,1);
-            } else if (button1 && button4)
+            } else if (button1 && button4){
                 transition(WAITING);
+            }
             break;
         case PREGAME:
             break;
         case GAME:
+            
             if (button2){
                 jump_flag = 1;
             }
@@ -158,19 +166,41 @@ switch_interrupt_handler()
                 clearScreen(BLACK);
                 transition(WAITING);
             }
+            if (button3){
+                pause_flag = 1;
+            }
+            break;
+        case PAUSE:
+            if (button1){
+                reset_pause_flag = 1;
+            }
+            break;
         case GAMEOVER:
             if (button4){
                 clearScreen(COLOR_GRAY);
+                
                 transition(GAME);
             }
+            break;
+            
         
     }
 }
 
 
-short drawPos_enemy[2] = {90,screenHeight/2 +24}, controlPos_enemy[2] = {91,screenHeight/2 +24};
+
+
+
+
+
+
+
+
+short drawPos_enemy[2] = {60,screenHeight/2 +24}, controlPos_enemy[2] = {61,screenHeight/2 +24};
 short colEnemyVelocity = -10;
 
+short drawPos_enemy_two[2] = {130,screenHeight/2 +24}, controlPos_enemy_two[2] = {131,screenHeight/2 +24};
+short colEnemyVelocity_two = -10;
 
 
 
@@ -210,7 +240,7 @@ short drawPosCharacter[2] = {10,screenHeight/2 +25};
 short controlPosCharacter[2] = {10,screenHeight/2 +24};
 
 
-short colVelocityCharacter = 10;
+short colVelocityCharacter = 12;
 short colLimitsCharacter[2] = {(screenHeight/2) +25 -60, (screenHeight/2) +25};
 
 
@@ -313,6 +343,9 @@ void wdt_c_handler()
         case GAME:
             state_game();
             break;
+        case PAUSE:
+            state_pause();
+            break;
         case GAMEOVER:
             state_game_over();
             break;
@@ -347,6 +380,7 @@ void wdt_c_handler()
 //    redrawScreen = 1;
 //  }
 u_int colorBGR;
+u_int colorBGR_two;
   
 //void update_shape();
 void main()
@@ -380,12 +414,34 @@ void main()
             
             floor_bar();
             screen_update_enemy(colorBGR);
+            if (enable_second_enemy)
+                screen_update_enemy_two(colorBGR_two);
             screen_update_character();
-            if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
-                transition(GAMEOVER);
             
+            
+            if(overlap_flag){
+                transition(GAMEOVER);
+            }
+            
+            if (pause_flag){
+
+                pause_flag = 0;
+                current_state = PAUSE;
+            }
             
         }
+//        if (current_state == PAUSE){
+//            
+//            if (reset_pause_flag){
+//                
+//                current_state = GAME;
+//                redrawScreen = 1;
+//                //reset_pause_flag = 0;
+//            }
+//            
+//        }
+        
+        redrawScreen = 0;
     }
 }
               
@@ -487,6 +543,43 @@ void state_game(){
     
     
 }
+void state_pause(){
+    display_pause();
+    reset_pause();
+}
+
+void reset_pause(){
+    if (reset_pause_flag){
+        fillRectangle((screenWidth >> 1)-(40/2), (screenHeight >> 1)-(40/2)-15, 40, 40, COLOR_GRAY);
+        current_state = GAME;
+        reset_pause_flag = 0;
+        redrawScreen = 1;
+        display_pause_once = 1;
+    }
+}
+
+
+
+
+void display_pause(){
+    if (display_pause_once){
+        short centerCol = screenWidth >> 1;
+        short centerRow = screenHeight >> 1;
+        short size = 40;
+        short startCol = centerCol - size / 2; // Start from the rightmost point
+        short startRow = centerRow - (size / 2) - 15;
+        drawRectOutline(startCol, startRow, size, size, BLACK);
+        fillRectangle(startCol+3, startRow+3, size-6, size-6, WHITE);
+        fillRectangle(centerCol-6, startRow+8, 5, 24, BLACK);
+        fillRectangle(centerCol+1, startRow+8, 5, 24, BLACK);
+        display_pause_once = 0;
+        redrawScreen = 1;
+    }
+    if (!reset_pause_flag && current_state == PAUSE)
+        redrawScreen = 0;
+}
+
+
 
 
 char score_once = 1;
@@ -570,13 +663,18 @@ void update_vars(){
     int x = ((high_score + drawPosCharacter[1]) % 4) +1;
     if (x == 1){
         colorBGR = COLOR_GREEN;
+        colorBGR_two = COLOR_GREEN;
     } else if (x == 2){
         colorBGR = COLOR_RED;
+        colorBGR_two = COLOR_RED;
     } else if (x == 3){
         colorBGR = COLOR_PURPLE;
+        colorBGR_two = COLOR_PURPLE;
     } else if (x == 4){
         colorBGR = COLOR_ORANGE;
+        colorBGR_two = COLOR_ORANGE;
     }
+    
     
     
     
@@ -587,11 +685,21 @@ void update_vars(){
     secCount = 0;
     totalSeconds = 0;
     
-    drawPos_enemy[0] = 90;
+    
+    colEnemyVelocity = -10;
+    drawPos_enemy[0] = 60;
     drawPos_enemy[1] = screenHeight/2 +24;
-    controlPos_enemy[0] = 91;
+    controlPos_enemy[0] = 61;
     controlPos_enemy[1] = screenHeight/2 +24;
 
+    colEnemyVelocity_two = -10;
+    drawPos_enemy_two[0] = 130;
+    drawPos_enemy_two[1] = screenHeight/2 +24;
+    controlPos_enemy_two[0] = 131;
+    controlPos_enemy_two[1] = screenHeight/2 +24;
+    
+    
+    
     
     drawPos_road_one[0] = 0;
     drawPos_road_one[1] = screenHeight/2 +30;
@@ -630,15 +738,16 @@ void update_vars(){
     
     
     
+    
     floor_done = 1;
     jump_flag = 0;
     draw_once = 1;
     score_once = 1;
     current_score = 0;
-    
-    
-    
-    
+    display_pause_once = 1;
+    enable_second_enemy = 0;
+    overlap_flag = 0;
+    seconds = 0;
     
     
     
@@ -692,8 +801,9 @@ void move_clouds() {
     P1OUT |= BIT6;  // Green LED on when CPU on
     count++;
     count2++;
+    
     if (count2 >= 50){
-        
+        seconds++;
         count2=0;
         short oldCol_enemy = controlPos_enemy[0];
         short newCol_enemy = oldCol_enemy + colEnemyVelocity;  // colVelocity should be negative
@@ -717,24 +827,64 @@ void move_clouds() {
                 colorBGR = COLOR_ORANGE;
             }
             controlPos_enemy[0] = screenWidth;  // Start from the right side again
+            seconds = 0;
             // You can adjust the vertical position randomly or keep it static as needed
             // Example for random vertical position within limits:
             /*controlPos[1] = 50; */ // Adjust range according to screen height
         } else {
             // Otherwise, update the position as before
+            
             controlPos_enemy[0] = newCol_enemy;
+            
         }
         
         
-//        do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
-//        if(!overlap)
+        if (current_score >= 10 && seconds ==8){
+            seconds = 0;
+            enable_second_enemy = 1;
+        }
+            
+        if(enable_second_enemy){
+            short oldCol_enemy_two = controlPos_enemy_two[0];
+            short newCol_enemy_two = oldCol_enemy_two + colEnemyVelocity_two;  // colVelocity should be negative
+            
+            // Check if the ball is completely off-screen on the left
+            if (newCol_enemy_two + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
+                // If off-screen, reset its position to just off-screen on the right
+                int x;
+                if (current_score > high_score)
+                    x = (current_score - high_score) + 1;
+                else
+                    x = (high_score - current_score) + 1;
+                x = x%4;
+                if (x == 1){
+                    colorBGR_two = COLOR_GREEN;
+                } else if (x == 2){
+                    colorBGR_two = COLOR_RED;
+                } else if (x == 3){
+                    colorBGR_two = COLOR_PURPLE;
+                } else if (x == 4){
+                    colorBGR_two = COLOR_ORANGE;
+                }
+                controlPos_enemy_two[0] = screenWidth;  // Start from the right side again
+                
+                // You can adjust the vertical position randomly or keep it static as needed
+                // Example for random vertical position within limits:
+                /*controlPos[1] = 50; */ // Adjust range according to screen height
+            } else {
+                // Otherwise, update the position as before
+                
+                controlPos_enemy_two[0] = newCol_enemy_two;
+            }
+            
+    
+        }
+        if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
+            overlap_flag = 1;
+        if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy_two[0]+3, drawPos_enemy_two[1]-10, drawPos_enemy_two[0]+19, drawPos_enemy_two[1]))
+            overlap_flag = 1;
+        
         redrawScreen = 1;  // Mark the screen for redrawing
-        
-        
-        
-        
-        
-        
         
     }
     
@@ -961,9 +1111,12 @@ void character_jump() {
              
 
          }
-//         do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+12, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+12, drawPos_enemy[1]);
-//         if (!overlap)
-             redrawScreen = 1;  // Mark the screen for redrawing
+         if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
+             overlap_flag = 1;
+         if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy_two[0]+6, drawPos_enemy_two[1]-10, drawPos_enemy_two[0]+19, drawPos_enemy_two[1]))
+             overlap_flag = 1;
+         
+        redrawScreen = 1;  // Mark the screen for redrawing
         
         secCount = 0;
     }
@@ -999,6 +1152,30 @@ draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsig
 //    
     
     
+    
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-4, 1, 2, color3);
+        }
+    }
+    for(char i = 0; i < 20; i++){
+        if (col+i >= 0){
+            fillRectangle(col+i,row-6, 1, 2, color2);
+        }
+    }
+    
+    for(char i = 0; i < 10; i++){
+        if (col+6+i >= 0){
+            fillRectangle(col+6+i,row-11, 1, 5, color2);
+        }
+    }
+    
+    for(char i = 0; i < 5; i++){
+        if (col+8+i >= 0){
+            fillRectangle(col+8+i,row-9, 1, 3, color4);
+        }
+    }
+    
     for(char i = 0; i < 4; i++){
         if (col+3+i >= 0){
             fillRectangle(col+3+i,row, 1, 2, color1);
@@ -1027,28 +1204,7 @@ draw_enemy(int col, int row, unsigned short color1, unsigned short color2, unsig
         }
     }
     
-    for(char i = 0; i < 20; i++){
-        if (col+i >= 0){
-            fillRectangle(col+i,row-4, 1, 2, color3);
-        }
-    }
-    for(char i = 0; i < 20; i++){
-        if (col+i >= 0){
-            fillRectangle(col+i,row-6, 1, 2, color2);
-        }
-    }
     
-    for(char i = 0; i < 10; i++){
-        if (col+6+i >= 0){
-            fillRectangle(col+6+i,row-11, 1, 5, color2);
-        }
-    }
-    
-    for(char i = 0; i < 5; i++){
-        if (col+8+i >= 0){
-            fillRectangle(col+8+i,row-9, 1, 3, color4);
-        }
-    }
 }
 // wheels = color 1
 // bottom portion of car = gray for one layer
@@ -1078,6 +1234,30 @@ screen_update_enemy(u_int colorBGR)
   
   draw_enemy(drawPos_enemy[0], drawPos_enemy[1], COLOR_BLACK, colorBGR, colorBGR, WHITE); /* draw */
 }
+
+
+void
+screen_update_enemy_two(u_int colorBGR)
+{
+  for (char axis = 0; axis < 2; axis ++)
+    if (drawPos_enemy_two[axis] != controlPos_enemy_two[axis]) /* position changed? */
+      goto redraw;
+  return;            /* nothing to do */
+ redraw:
+  draw_enemy(drawPos_enemy_two[0], drawPos_enemy_two[1], COLOR_GRAY,COLOR_GRAY,COLOR_BLACK, COLOR_GRAY); /* erase */
+  for (char axis = 0; axis < 2; axis ++)
+    drawPos_enemy_two[axis] = controlPos_enemy_two[axis];
+    
+    
+  
+  draw_enemy(drawPos_enemy_two[0], drawPos_enemy_two[1], COLOR_BLACK, colorBGR, colorBGR, WHITE); /* draw */
+}
+
+
+
+
+
+
 
 
 char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY, char eBRX, char eBRY) {
