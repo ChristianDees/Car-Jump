@@ -17,10 +17,35 @@ main()
   lcd_init();
   u_char width = screenWidth, height = screenHeight;
 
-  clearScreen(WHITE);
+    clearScreen(COLOR_GRAY);
   //drawPixel(screenWidth>>1, screenHeight>>1, BLACK);
     short centerCol = screenWidth >> 1;
     short centerRow = screenHeight >> 1;
+    
+    
+    drawString5x7(5,5, "<- SW3", BLACK, COLOR_GRAY);
+    drawString5x7(screenWidth-40,5, "SW4 ->", BLACK, COLOR_GRAY);
+
+
+    drawString11x16(40,20, "Time", BLACK, COLOR_GRAY);
+    fillRectangle(15, 40, screenWidth-30, 2, BLACK);
+    
+    drawString8x12(17,55, "SW1:", BLACK, COLOR_GRAY);
+    drawString8x12(55,55, "Save", BLACK, COLOR_GRAY);
+    
+    drawString8x12(17,80, "SW2:", BLACK, COLOR_GRAY);
+    drawString8x12(55,80, "Hours", BLACK, COLOR_GRAY);
+    
+    drawString8x12(17,105, "SW3:", BLACK, COLOR_GRAY);
+    drawString8x12(55,105, "Minutes", BLACK, COLOR_GRAY);
+
+    drawString8x12(17,130, "SW4:", BLACK, COLOR_GRAY);
+    drawString8x12(55,130, "Return", BLACK, COLOR_GRAY);
+    
+    
+    
+   
+
     
     //draw_car2(centerCol+10, centerRow-40);
     
@@ -29,20 +54,7 @@ main()
     int startRow = centerRow - size / 2;
     
     
-    fillRectangle(startCol, startRow, size, 3, BLACK);
-    fillRectangle(startCol, startRow + size-3, size, 3, BLACK);
-
-    /**< left & right */
-    fillRectangle(startCol, startRow, 3, size, BLACK);
-    fillRectangle(startCol + size-3, startRow, 3, size, BLACK);
     
-    
-    
-    
-//    drawRectOutline(startCol, startRow, size, size, BLACK);
-    fillRectangle(startCol+3, startRow+3, size-6, size-6, WHITE);
-    fillRectangle(centerCol-6, startRow+8, 5, 24, BLACK);
-    fillRectangle(centerCol+1, startRow+8, 5, 24, BLACK);
 
 
 //    fillRectangle(startCol-10, startRow, 5, 10, WHITE);

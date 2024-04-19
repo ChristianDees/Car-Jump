@@ -8,7 +8,8 @@
 typedef enum{
     WAITING,
     CHANGETIME,
-    PREGAME,
+    CONTROLPAGEONE,
+    CONTROLPAGETWO,
     GAME,
     PAUSE,
     GAMEOVER
@@ -39,9 +40,10 @@ void state_waiting();
 void state_change_time();
 void transition(State next_state);
 void display_clock();
-void countdown_numbers();
 void game();
-void state_pre_game();
+void state_control_page_one();
+void state_control_page_two();
+
 void state_game();
 char pause_flag = 0;
 void update_shape();
@@ -59,6 +61,8 @@ char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY
 char floor_done = 1;
 void state_pause();
 void display_pause();
+void display_controls();
+void display_controls_two();
 int high_score = 0;
 int current_score = 0;
 char blue = 31, green = 0, red = 31;
@@ -70,7 +74,7 @@ short hour = 0;
 short minutes = 0;
 char overlap_flag = 0;
 char seconds = 0;
-
+char display_controls_once = 1;
 
 
 
@@ -135,11 +139,11 @@ switch_interrupt_handler()
     
     switch(current_state){
         case WAITING:
-            if (button1 && button4)
+            if (button4)
                 transition(CHANGETIME);
             else if (button1){
-                clearScreen(WHITE);
-                transition(PREGAME);
+                clearScreen(COLOR_GRAY);
+                transition(CONTROLPAGEONE);
             }
             break;
         case CHANGETIME:
@@ -151,35 +155,59 @@ switch_interrupt_handler()
                 changeTime = 1;
                 minutes++;
                 update_time(0,1);
-            } else if (button1 && button4){
+            } else if (button1){
                 transition(WAITING);
             }
             break;
-        case PREGAME:
+        case CONTROLPAGEONE:
+            if(button1){
+                clearScreen(COLOR_GRAY);
+                transition(GAME);
+            }
+            if(button3){
+                clearScreen(BLACK);
+                transition(WAITING);
+            }
+            if(button4){
+                clearScreen(COLOR_GRAY);
+                
+                transition(CONTROLPAGETWO);
+            }
+            break;
+        case CONTROLPAGETWO:
+            if(button3){
+                clearScreen(COLOR_GRAY);
+                
+                transition(CONTROLPAGEONE);
+            }
             break;
         case GAME:
             
             if (button2){
                 jump_flag = 1;
             }
-            if (button4){
-                clearScreen(BLACK);
-                transition(WAITING);
-            }
+            
             if (button3){
                 pause_flag = 1;
             }
             break;
         case PAUSE:
-            if (button1){
+            if (button3){
                 reset_pause_flag = 1;
+            }
+            if (button4){
+                clearScreen(BLACK);
+                transition(WAITING);
             }
             break;
         case GAMEOVER:
-            if (button4){
+            if (button1){
                 clearScreen(COLOR_GRAY);
-                
                 transition(GAME);
+            }
+            if (button4){
+                clearScreen(BLACK);
+                transition(WAITING);
             }
             break;
             
@@ -337,8 +365,11 @@ void wdt_c_handler()
         case CHANGETIME:
             state_change_time();
             break;
-        case PREGAME:
-            state_pre_game();
+        case CONTROLPAGEONE:
+            state_control_page_one();
+            break;
+        case CONTROLPAGETWO:
+            state_control_page_two();
             break;
         case GAME:
             state_game();
@@ -530,8 +561,11 @@ void state_change_time(){
     blink_change_clock();
 }
 
-void state_pre_game(){
-    countdown_numbers();
+void state_control_page_one(){
+    display_controls();
+}
+void state_control_page_two(){
+    display_controls_two();
 }
 
 void state_game(){
@@ -588,10 +622,10 @@ void display_score(){
     if (score_once){
         char str[20]; // Adjust the size as needed
         int_to_string_simple(high_score, str, sizeof(str));
-        drawString5x7(40, 135, str, BLACK, COLOR_GRAY);
+        drawString8x12(40, 135, str, BLACK, COLOR_GRAY);
         
-        drawString5x7(20, 135, "HI:", BLACK, COLOR_GRAY);
-        drawString5x7(70, 135, "Score:", BLACK, COLOR_GRAY);
+        drawString8x12(10, 135, "HI:", BLACK, COLOR_GRAY);
+        
         redrawScreen=1;
         score_once = 0;
     }
@@ -748,7 +782,7 @@ void update_vars(){
     enable_second_enemy = 0;
     overlap_flag = 0;
     seconds = 0;
-    
+    display_controls_once = 1;
     
     
 }
@@ -759,24 +793,58 @@ short cr = (screenHeight >> 1)-40;
 
 
 // change to how to play
-void countdown_numbers(){
+void display_controls(){
     // blank screen count down 3 2 1 in middle
     // game then starts after 3 seconds of counting down
-    secCount++;
-    if (secCount==1)
-        draw_three(cc,cr,BLACK,WHITE);
-    if(secCount == 250){
-        clearScreen(COLOR_GRAY);
-        draw_two(cc,cr,BLACK,WHITE);
+    if (display_controls_once){
+        drawString5x7(5,5, "<- SW3", BLACK, COLOR_GRAY);
+        drawString5x7(screenWidth-40,5, "SW4 ->", BLACK, COLOR_GRAY);
+        drawString11x16_normal(20,20, "Controls", BLACK, COLOR_GRAY);
+        fillRectangle(15, 40, screenWidth-30, 2, BLACK);
+        
+        drawString8x12(17,55, "SW1:", BLACK, COLOR_GRAY);
+        drawString8x12(55,55, "Start", BLACK, COLOR_GRAY);
+        
+        drawString8x12(17,80, "SW2:", BLACK, COLOR_GRAY);
+        drawString8x12(55,80, "Jump", BLACK, COLOR_GRAY);
+        
+        drawString8x12(17,105, "SW3:", BLACK, COLOR_GRAY);
+        drawString8x12(55,105, "Pause", BLACK, COLOR_GRAY);
+        
+        drawString8x12(17,130, "SW4:", BLACK, COLOR_GRAY);
+        drawString8x12(55,130, "Set Time", BLACK, COLOR_GRAY);
+        
+        redrawScreen = 1;
+        display_controls_once = 0;
+
     }
-    if(secCount == 500){
-        clearScreen(COLOR_GRAY);
-        draw_one(cc,cr,BLACK,WHITE);
+    redrawScreen = 0;
+}
+
+void display_controls_two(){
+    // blank screen count down 3 2 1 in middle
+    // game then starts after 3 seconds of counting down
+    if (display_controls_once){
+        drawString5x7(5,5, "<- SW3", BLACK, COLOR_GRAY);
+        drawString11x16(40,20, "Time", BLACK, COLOR_GRAY);
+        fillRectangle(15, 40, screenWidth-30, 2, BLACK);
+        
+        drawString8x12(17,55, "SW1:", BLACK, COLOR_GRAY);
+        drawString8x12(55,55, "Save", BLACK, COLOR_GRAY);
+        
+        drawString8x12(17,80, "SW2:", BLACK, COLOR_GRAY);
+        drawString8x12(55,80, "Hours", BLACK, COLOR_GRAY);
+        
+        drawString8x12(17,105, "SW3:", BLACK, COLOR_GRAY);
+        drawString8x12(55,105, "Minutes", BLACK, COLOR_GRAY);
+
+        drawString8x12(17,130, "SW4:", BLACK, COLOR_GRAY);
+        drawString8x12(55,130, "Return", BLACK, COLOR_GRAY);
+        
+        redrawScreen = 1;
+        display_controls_once = 0;
     }
-    if(secCount == 750){
-        clearScreen(COLOR_GRAY);
-        transition(GAME);
-    }
+    redrawScreen = 0;
 }
 
 void game(){
@@ -879,9 +947,13 @@ void move_clouds() {
             
     
         }
-        if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
+        if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-11, drawPos_enemy[0]+16, drawPos_enemy[1]))
             overlap_flag = 1;
-        if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy_two[0]+3, drawPos_enemy_two[1]-10, drawPos_enemy_two[0]+19, drawPos_enemy_two[1]))
+        if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy_two[0]+3, drawPos_enemy_two[1]-11, drawPos_enemy_two[0]+16, drawPos_enemy_two[1]))
+            overlap_flag = 1;
+        if (do_overlap(drawPosCharacter[0]-3, drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+16, drawPos_enemy[1]))
+            overlap_flag = 1;
+        if (do_overlap(drawPosCharacter[0]-3, drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy_two[0], drawPos_enemy_two[1]-11, drawPos_enemy_two[0]+16, drawPos_enemy_two[1]))
             overlap_flag = 1;
         
         redrawScreen = 1;  // Mark the screen for redrawing
@@ -1081,7 +1153,7 @@ void screen_update_score(){
         high_score = current_score;
     char str[20]; // Adjust the size as needed
     int_to_string_simple(current_score, str, sizeof(str));
-    drawString5x7(110, 135, str, BLACK, COLOR_GRAY);
+    drawString8x12(90, 135, str, BLACK, COLOR_GRAY);
     
 }
 
@@ -1111,9 +1183,13 @@ void character_jump() {
              
 
          }
-         if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-10, drawPos_enemy[0]+19, drawPos_enemy[1]))
+         if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy[0]+3, drawPos_enemy[1]-11, drawPos_enemy[0]+16, drawPos_enemy[1]))
              overlap_flag = 1;
-         if (do_overlap(drawPosCharacter[0]+3, drawPosCharacter[1]-10, drawPosCharacter[0]+19, drawPosCharacter[1],drawPos_enemy_two[0]+6, drawPos_enemy_two[1]-10, drawPos_enemy_two[0]+19, drawPos_enemy_two[1]))
+         if (do_overlap(drawPosCharacter[0], drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy_two[0]+3, drawPos_enemy_two[1]-11, drawPos_enemy_two[0]+16, drawPos_enemy_two[1]))
+             overlap_flag = 1;
+         if (do_overlap(drawPosCharacter[0]-3, drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy[0], drawPos_enemy[1]-11, drawPos_enemy[0]+16, drawPos_enemy[1]))
+             overlap_flag = 1;
+         if (do_overlap(drawPosCharacter[0]-3, drawPosCharacter[1]-11, drawPosCharacter[0]+16, drawPosCharacter[1],drawPos_enemy_two[0], drawPos_enemy_two[1]-11, drawPos_enemy_two[0]+16, drawPos_enemy_two[1]))
              overlap_flag = 1;
          
         redrawScreen = 1;  // Mark the screen for redrawing

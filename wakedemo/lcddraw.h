@@ -48,11 +48,16 @@ void drawString11x16(u_char col, u_char row, char *string,
 /** 5x7 font - this function draws background pixels
  *  Adapted from RobG's EduKit
  */
+void drawChar8x12(u_char rcol, u_char rrow, char c,
+                     u_int fgColorBGR, u_int bgColorBGR);
 void drawChar5x7(u_char rcol, u_char rrow, char c,
          u_int fgColorBGR, u_int bgColorBGR);
 void drawChar11x16(u_char col, u_char row, char c,
          u_int fgColorBGR, u_int bgColorBGR);
-
+void drawString8x12(u_char col, u_char row, char *string,
+                    u_int fgColorBGR, u_int bgColorBGR);
+void drawString11x16_normal(u_char col, u_char row, char *string,
+                            u_int fgColorBGR, u_int bgColorBGR);
 /** Draw rectangle outline
  *
  *  \param colMin Column start
