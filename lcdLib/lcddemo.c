@@ -22,10 +22,42 @@ main()
     short centerCol = screenWidth >> 1;
     short centerRow = screenHeight >> 1;
     
-    draw_car2(centerCol+10, centerRow-40);
+    //draw_car2(centerCol+10, centerRow-40);
+    
+    int size = 40;
+    int startCol = centerCol - size / 2; // Start from the rightmost point
+    int startRow = centerRow - size / 2;
+    
+    
+    fillRectangle(startCol, startRow, size, 3, BLACK);
+    fillRectangle(startCol, startRow + size-3, size, 3, BLACK);
+
+    /**< left & right */
+    fillRectangle(startCol, startRow, 3, size, BLACK);
+    fillRectangle(startCol + size-3, startRow, 3, size, BLACK);
     
     
     
+    
+//    drawRectOutline(startCol, startRow, size, size, BLACK);
+    fillRectangle(startCol+3, startRow+3, size-6, size-6, WHITE);
+    fillRectangle(centerCol-6, startRow+8, 5, 24, BLACK);
+    fillRectangle(centerCol+1, startRow+8, 5, 24, BLACK);
+
+
+//    fillRectangle(startCol-10, startRow, 5, 10, WHITE);
+//    fillRectangle(startCol+10, startRow-20, 5, 10, WHITE);
+
+    
+    
+    
+    
+//    for (short i = 0; i < size; ++i) {
+//        for (short j = 0; j < 2 * i + 1; ++j) {
+//            drawPixel(startCol - i, startRow + size / 2 - i + j, BLACK);
+//        }
+//    }
+
     
     
     
@@ -58,7 +90,7 @@ main()
     // each time increase row, increase column to add one
     int x = centerCol;
     int y = centerRow;
-    int size = 50;
+    
     
     
 
