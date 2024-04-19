@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "lcdutils.h"
 #include "lcddraw.h"
-
+#include <stdlib.h>     // required for srand
 
 typedef enum{
     WAITING,
@@ -75,19 +75,86 @@ short minutes = 0;
 char overlap_flag = 0;
 char seconds = 0;
 char display_controls_once = 1;
+char buzz_flag = 0;
+
+void adc_init() {
+    // configure ADC input
+    P1DIR &= ~BIT1; // clears bit one
+    P1SEL |= BIT1;  // set bit to port 1 select register
+                    // makes pin configured for a "special function"
+    // ADC10CTL0 -> ADC + 10 bit converesions + control 0 register
+    // ADC10SHT_0 set sample hold time to 4 ADC10CLK cycles
+    // ADC10ON sets ADC module on
+    // 4 clock cycles for it to quickly convert the voltage to a digital value
+    // 4 clock cycles as accuracy doesn't matter for this case
+    ADC10CTL0 = ADC10SHT_0 + ADC10ON;
+    ADC10CTL1 = INCH_1; // specify analog input channel to A1/bit 1
+}
+
+int random_int_generator() {
+    // ENC -> enable ADC conversion + set ADC10SC bit to start conversion
+    ADC10CTL0 |= ENC + ADC10SC;
+
+    // wait for conversion to finish
+    // once finished, ADC10BUSY is cleared and end loop
+    // ADC10BUSY = flag indicating if ADC is busy converting a signal
+    while (ADC10CTL1 & ADC10BUSY);
+
+    // use A1 as seed for a random number each boot
+    // ADC10MEM = ADC memory register: holds result of ADC conversion
+    // uses a different seed every time it boots as voltage is different
+    srand(ADC10MEM);
+
+    // generate random number between 1 and 4, inclusive
+    return (rand()% 4) + 1;
+}
+
+void buzzer_init()
+{
+    timerAUpmode();             // set timer A in up mode for PWM
+    P2SEL2 &= ~(BIT6 | BIT7);   // clear P2SEL2.6 and 7 for pin config
+    P2SEL &= ~BIT7;             // clear P2SEL.7 for config
+    P2SEL |= BIT6;              // set P2SEL.6 for timer A output
+    P2DIR = BIT6;               // set P2.6 direction as output for driving the buzzer
+}
+
+// set period of the PWM signal
+// this buzzer clock is 2MHz
+void buzzer_set_period(short cycles)
+{
+  // capture compare registers
+  CCR0 = cycles;        // set period of PWM (how often PWM repeats itself)
+  CCR1 = cycles >> 1;   // signal is on same time it is off (making a stable waveform)
+}
+
+
+int buzz_seconds = 0;           // number of times function is called during each interrupt
+char buzz_second_count = 0;     // count of buzz_seconds var
+char buzz_toggler = 0;          // char toggler indicating when buzzer should be on/off
 
 
 
 
 
-
-
-
-
-
-
-
-
+void buzz_game_over(){
+    buzz_seconds++;
+    if (buzz_seconds >= 50) {      // once every 90th of a second
+        buzz_seconds = 0;
+        buzz_second_count++;
+        
+        buzz_toggler ^= 1;         // "toggle buzzer on/off"
+        buzzer_set_period(8000);
+        if (!(buzz_toggler))       // if buzzer is not on, set frequency to 0
+          buzzer_set_period(0);
+        if (buzz_second_count==3){ // on second buzz, make lower pitch
+            buzzer_set_period(15000);
+        }
+        if (buzz_second_count==4){ // on second buzz, make lower pitch
+            buzz_flag = 0;
+        }
+        
+    }
+}
 
 
 
@@ -428,7 +495,8 @@ void main()
   configureClocks();
   lcd_init();
   switch_init();
-  
+    buzzer_init();
+    adc_init();
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);                  /**< GIE (enable interrupts) */
     for(;;) {
@@ -648,13 +716,18 @@ void display_score(){
 static char draw_once = 1;
 void state_game_over(){
     if (draw_once){
+        buzz_flag = 1;
         fillRectangle(30, screenWidth/2 -15, 65, 45, COLOR_BLACK);
         drawString11x16(35,screenWidth/2 -10, "Game", COLOR_RED, BLACK);
         drawString11x16(35,screenWidth/2 +10, "Over", COLOR_RED, BLACK);
         draw_once = 0;
         redrawScreen = 1;
+        
     }
     redrawScreen = 0;
+    if (buzz_flag)
+        buzz_game_over();
+    
     
 }
 
@@ -710,7 +783,8 @@ static short count2 = 0;
 void update_vars(){
     //
     
-    int x = ((high_score + drawPosCharacter[1]) % 4) +1;
+//    int x = ((high_score + drawPosCharacter[1]) % 4) +1;
+    int x = random_int_generator();
     if (x == 1){
         colorBGR = COLOR_GREEN;
         colorBGR_two = COLOR_GREEN;
@@ -784,9 +858,11 @@ void update_vars(){
     
     
     
-    
-    
-    
+    buzz_seconds = 0;
+    buzz_toggler = 0;
+    buzz_second_count = 0;
+    buzz_flag = 0;
+    buzzer_set_period(0);
     
     
     floor_done = 1;
@@ -800,6 +876,7 @@ void update_vars(){
     seconds = 0;
     display_controls_once = 1;
     display_clock_once = 1;
+    
     
     
 }
@@ -896,12 +973,7 @@ void move_clouds() {
         // Check if the ball is completely off-screen on the left
         if (newCol_enemy + BALL_WIDTH < 0) {  // BALL_WIDTH is the width of the ball
             // If off-screen, reset its position to just off-screen on the right
-            int x;
-            if (current_score > high_score)
-                x = (current_score - high_score) + 1;
-            else
-                x = (high_score - current_score) + 1;
-            x = x%4;
+            int x = random_int_generator();
             if (x == 1){
                 colorBGR = COLOR_GREEN;
             } else if (x == 2){
