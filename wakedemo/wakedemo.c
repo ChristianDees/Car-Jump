@@ -43,7 +43,7 @@ void display_clock();
 void game();
 void state_control_page_one();
 void state_control_page_two();
-
+State current_state = WAITING;
 void state_game();
 char pause_flag = 0;
 void update_shape();
@@ -139,12 +139,16 @@ switch_interrupt_handler()
     
     switch(current_state){
         case WAITING:
-            if (button4)
+            if (button1){
+                clearScreen(COLOR_GRAY);
+                transition(GAME);
+            } else if (button4){
                 transition(CHANGETIME);
-            else if (button1){
+            }else if (button2){
                 clearScreen(COLOR_GRAY);
                 transition(CONTROLPAGEONE);
             }
+            
             break;
         case CHANGETIME:
             if (button2){// make it such that if hour is above 10, refresh position 1 and 2, otherwise refresh only 1
@@ -164,20 +168,19 @@ switch_interrupt_handler()
                 clearScreen(COLOR_GRAY);
                 transition(GAME);
             }
-            if(button3){
-                clearScreen(BLACK);
+            if(button2){
+                clearScreen(COLOR_GRAY);
                 transition(WAITING);
             }
-            if(button4){
+            if(button3){
                 clearScreen(COLOR_GRAY);
                 
                 transition(CONTROLPAGETWO);
             }
             break;
         case CONTROLPAGETWO:
-            if(button3){
+            if(button2){
                 clearScreen(COLOR_GRAY);
-                
                 transition(CONTROLPAGEONE);
             }
             break;
@@ -196,7 +199,7 @@ switch_interrupt_handler()
                 reset_pause_flag = 1;
             }
             if (button4){
-                clearScreen(BLACK);
+                clearScreen(COLOR_GRAY);
                 transition(WAITING);
             }
             break;
@@ -206,7 +209,7 @@ switch_interrupt_handler()
                 transition(GAME);
             }
             if (button4){
-                clearScreen(BLACK);
+                clearScreen(COLOR_GRAY);
                 transition(WAITING);
             }
             break;
@@ -336,8 +339,10 @@ void refresh_1(){
     clock_number(second_digit_h,2,0);
 }
 void refresh_2(){
+    short second_digit_h = hour % 10;
+
     clock_number(0,2,1);
-    clock_number(hour,2,0);
+    clock_number(second_digit_h,2,0);
 }
 void refresh_3(){
 
@@ -351,7 +356,8 @@ void refresh_3(){
 }
 void refresh_4(){
     clock_number(0,4,1);
-    clock_number(minutes,4,0);
+    short second_digit_m = minutes % 10;
+    clock_number(second_digit_m,4,0);
 }
 
 
@@ -425,15 +431,12 @@ void main()
   
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);                  /**< GIE (enable interrupts) */
-  clearScreen(BLACK);
-    update_time(0,0);
-    clock_colon();
     for(;;) {
       while (!redrawScreen) { /**< Pause CPU if screen doesn't need updating */
         P1OUT &= ~BIT6;    /**< Green led off witHo CPU */
         or_sr(0x10);          /**< CPU OFF */
       }
-      
+        
         if(current_state == GAME){
             screen_update_score();
             
@@ -500,17 +503,17 @@ update_time(char change_hour, char change_minutes){
     }
     
     if (change_hour){
-        if (hour >= 10 || hour == 0)
+        if (hour == 0 || (second_digit_h == 0))
             refresh_1();
-        else if (hour < 10){
+        else if (second_digit_h <= 9 && hour > 0){
             refresh_2();
         }
     }
     if (change_minutes){
         
-        if (minutes >= 10 || minutes == 0)
+        if (minutes == 0 || (minutes%10 == 0))
             refresh_3();
-        else if (minutes < 10){
+        else if (second_digit_m <= 9 && minutes > 0){
             refresh_4();
             
         }
@@ -550,8 +553,8 @@ static int secCount = 0;
 static int totalSeconds = 0;
 
 
-State current_state = WAITING;
 void state_waiting(){
+    
     display_clock();
 }
 static int time_sec = 0;
@@ -660,7 +663,17 @@ void transition(State next_state){
     update_vars();
     current_state = next_state;
 }
+
+char display_clock_once = 1;
 void display_clock(){
+    if(display_clock_once){
+        clearScreen(COLOR_GRAY);
+        update_time(0,0);
+        clock_colon();
+        redrawScreen = 1;
+        display_clock_once = 0;
+    }
+
       secCount++;
       if (secCount >= 250){
           secCount = 0;
@@ -668,13 +681,16 @@ void display_clock(){
           if (totalSeconds >= 60){
               totalSeconds = 0;
               minutes++;
+              redrawScreen = 1;
               update_time(0,1);
           }
       }
       if (minutes >= 60){
           hour++;
+          redrawScreen = 1;
           update_time(1,0);
       }
+    redrawScreen = 0;
 }
 
 
@@ -783,6 +799,7 @@ void update_vars(){
     overlap_flag = 0;
     seconds = 0;
     display_controls_once = 1;
+    display_clock_once = 1;
     
     
 }
@@ -797,8 +814,8 @@ void display_controls(){
     // blank screen count down 3 2 1 in middle
     // game then starts after 3 seconds of counting down
     if (display_controls_once){
-        drawString5x7(5,5, "<- SW3", BLACK, COLOR_GRAY);
-        drawString5x7(screenWidth-40,5, "SW4 ->", BLACK, COLOR_GRAY);
+        drawString5x7(5,5, "< SW2", BLACK, COLOR_GRAY);
+        drawString5x7(screenWidth-30,5, "SW3 >", BLACK, COLOR_GRAY);
         drawString11x16_normal(20,20, "Controls", BLACK, COLOR_GRAY);
         fillRectangle(15, 40, screenWidth-30, 2, BLACK);
         
@@ -825,7 +842,7 @@ void display_controls_two(){
     // blank screen count down 3 2 1 in middle
     // game then starts after 3 seconds of counting down
     if (display_controls_once){
-        drawString5x7(5,5, "<- SW3", BLACK, COLOR_GRAY);
+        drawString5x7(5,5, "< SW2", BLACK, COLOR_GRAY);
         drawString11x16(40,20, "Time", BLACK, COLOR_GRAY);
         fillRectangle(15, 40, screenWidth-30, 2, BLACK);
         

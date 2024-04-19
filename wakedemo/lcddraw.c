@@ -214,38 +214,38 @@ void clock_number(short digit, short pos, char reset){
             break;
     }
     if (reset)
-        fillRectangle(col, row, 20, screenWidth-(row), BLACK);
+        fillRectangle(col, row, 20, screenWidth-(row), COLOR_GRAY);
     else{
         switch(digit){
             case 0:
-                draw_zero(col, row, COLOR_RED, BLACK);
+                draw_zero(col, row, BLACK, COLOR_GRAY);
                 break;
             case 1:
-                draw_one(col, row, COLOR_RED, BLACK);
+                draw_one(col, row, BLACK, COLOR_GRAY);
                 break;
             case 2:
-                draw_two(col, row, COLOR_RED, BLACK);
+                draw_two(col, row, BLACK, COLOR_GRAY);
                 break;
             case 3:
-                draw_three(col, row, COLOR_RED, BLACK);
+                draw_three(col, row, BLACK, COLOR_GRAY);
                 break;
             case 4:
-                draw_four(col, row, COLOR_RED, BLACK);
+                draw_four(col, row, BLACK, COLOR_GRAY);
                 break;
             case 5:
-                draw_five(col, row, COLOR_RED, BLACK);
+                draw_five(col, row, BLACK, COLOR_GRAY);
                 break;
             case 6:
-                draw_six(col, row, COLOR_RED, BLACK);
+                draw_six(col, row, BLACK, COLOR_GRAY);
                 break;
             case 7:
-                draw_seven(col, row, COLOR_RED, BLACK);
+                draw_seven(col, row, BLACK, COLOR_GRAY);
                 break;
             case 8:
-                draw_eight(col, row, COLOR_RED, BLACK);
+                draw_eight(col, row, BLACK, COLOR_GRAY);
                 break;
             case 9:
-                draw_nine(col, row, COLOR_RED, BLACK);
+                draw_nine(col, row, BLACK, COLOR_GRAY);
                 break;
         }
     }
@@ -254,8 +254,8 @@ void clock_number(short digit, short pos, char reset){
 void clock_colon(){
     short centerCol = screenWidth >> 1;
     short centerRow = screenHeight >> 1;
-    fillRectangle(centerCol-3, centerRow-27, 6, 6, COLOR_RED);
-    fillRectangle(centerCol-3, centerRow+27, 6, 6,COLOR_RED);
+    fillRectangle(centerCol-3, centerRow-27, 6, 6, BLACK);
+    fillRectangle(centerCol-3, centerRow+27, 6, 6,BLACK);
 }
 
 
