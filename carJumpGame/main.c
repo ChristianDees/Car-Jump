@@ -2,6 +2,7 @@
 #include <libTimer.h>
 #include <stdio.h>
 #include "lcddraw.h"
+#include "lcdutils.h"
 #include "buzzer.h"
 #include "random_int.h"
 #include "switches.h"
