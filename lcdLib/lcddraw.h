@@ -5,7 +5,7 @@
 #ifndef lcddraw_included
 #define lcddraw_included
 
-/** Draw single pixel at col, row 
+/** Draw single pixel at col, row
  *
  *  \param col Column to draw to
  *  \param row Row to draw to
@@ -24,7 +24,7 @@ void drawPixel(u_char col, u_char row, u_int colorBGR);
 void fillRectangle(u_char colMin, u_char rowMin, u_char width, u_char height, u_int colorBGR);
 
 /** Clear screen (fill with color)
- *  
+ *
  *  \param colorBGR The color to fill screen
  */
 void clearScreen(u_int colorBGR);
@@ -41,50 +41,49 @@ void clearScreen(u_int colorBGR);
  *  \param fgColorBGR Foreground color in BGR
  *  \param bgColorBGR Background color in BGR
  */
-void drawString5x7(u_char col, u_char row, char *string, 
-		   u_int fgColorBGR, u_int bgColorBGR);
-void drawString8x12(u_char col, u_char row, char *string,
-                    u_int fgColorBGR, u_int bgColorBGR);
-
+void drawString5x7(u_char col, u_char row, char *string,
+           u_int fgColorBGR, u_int bgColorBGR);
+void drawString11x16(u_char col, u_char row, char *string,
+                     u_int fgColorBGR, u_int bgColorBGR);
 /** 5x7 font - this function draws background pixels
  *  Adapted from RobG's EduKit
  */
-void drawChar5x7(u_char rcol, u_char rrow, char c,
-		 u_int fgColorBGR, u_int bgColorBGR);
 void drawChar8x12(u_char rcol, u_char rrow, char c,
-                  u_int fgColorBGR, u_int bgColorBGR);
+                     u_int fgColorBGR, u_int bgColorBGR);
+void drawChar5x7(u_char rcol, u_char rrow, char c,
+         u_int fgColorBGR, u_int bgColorBGR);
 void drawChar11x16(u_char col, u_char row, char c,
          u_int fgColorBGR, u_int bgColorBGR);
-void drawString11x16(u_char col, u_char row, char *string,
-                     u_int fgColorBGR, u_int bgColorBGR);
-
+void drawString8x12(u_char col, u_char row, char *string,
+                    u_int fgColorBGR, u_int bgColorBGR);
+void drawString11x16_normal(u_char col, u_char row, char *string,
+                            u_int fgColorBGR, u_int bgColorBGR);
 /** Draw rectangle outline
- *  
+ *
  *  \param colMin Column start
- *  \param rowMin Row start 
+ *  \param rowMin Row start
  *  \param width Width of rectangle
  *  \param height Height of rectangle
  *  \param colorBGR Color of rectangle in BGR
  */
 void drawRectOutline(u_char colMin, u_char rowMin, u_char width, u_char height,
-		     u_int colorBGR);
+             u_int colorBGR);
 
 
 
 
 
 
-void clock_number(u_char digit, u_char pos);
-void draw_zero(short col, short row);
-void draw_one(short col, short row);
-void draw_two(short col, short row);
-void draw_three(short col, short row);
-void draw_four(short col, short row);
-void draw_five(short col, short row);
-void draw_six(short col, short row);
-void draw_seven(short col, short row);
-void draw_eight(short col, short row);
-void draw_nine(short col, short row);
+void clock_number(short digit, short pos, char reset);
+void draw_zero(short col, short row, u_int fgColor, u_int bgColor);
+void draw_one(short col, short row, u_int fgColor, u_int bgColor);
+void draw_two(short col, short row, u_int fgColor, u_int bgColor);
+void draw_three(short col, short row, u_int fgColor, u_int bgColor);
+void draw_four(short col, short row, u_int fgColor, u_int bgColor);
+void draw_five(short col, short row, u_int fgColor, u_int bgColor);
+void draw_six(short col, short row, u_int fgColor, u_int bgColor);
+void draw_seven(short col, short row, u_int fgColor, u_int bgColor);
+void draw_eight(short col, short row, u_int fgColor, u_int bgColor);
+void draw_nine(short col, short row, u_int fgColor, u_int bgColor);
 void clock_colon();
 #endif // included
-
