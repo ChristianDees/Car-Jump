@@ -42,7 +42,7 @@ void buzz_game_over(){
           buzzer_set_period(0);
         if (buzz_second_count==3)  // on second buzz, make lower pitch
             buzzer_set_period(20000);
-        if (buzz_second_count==4)  // on second buzz, make lower pitch
+        if (buzz_second_count==4)  // stop buzzing after second buzz
             buzz_flag = 0;
     }
 }

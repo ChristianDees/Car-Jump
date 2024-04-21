@@ -1,17 +1,10 @@
 #include <msp430.h>
 #include <libTimer.h>
 #include <stdio.h>
-#include "lcdutils.h"
 #include "lcddraw.h"
 #include "buzzer.h"
-#include "state_machines.h"
 #include "random_int.h"
 #include "switches.h"
-#include "int_to_str.h"
-#include "environment.h"
-#include "characters.h"
-#include "clock.h"
-#include "hud.h"
 #include "updates.h"
 
 void main()
