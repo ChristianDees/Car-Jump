@@ -5,6 +5,9 @@
 void wdt_c_handler()
 {
     switch (current_state) {
+        case INTRO:
+            state_intro();
+            break;
         case WAITING:
             state_waiting();
             break;

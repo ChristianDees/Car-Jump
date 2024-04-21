@@ -17,6 +17,41 @@ char seconds_score = 0;
 char draw_once = 1;
 char pause_flag = 0;
 
+char display_intro_once = 1;
+
+
+int introSeconds = 0;
+
+void display_intro(){
+    
+    if (display_intro_once){
+        clearScreen(COLOR_RED);
+        fillRectangle(15, 15, screenWidth-30, 4, WHITE);
+        drawString11x16_normal(45,60, "CAR", WHITE, COLOR_RED);
+        drawString11x16_normal(40,85, "JUMP", WHITE, COLOR_RED);
+        fillRectangle(15, screenHeight-15, screenWidth-30, 4, WHITE);
+        display_intro_once = 0;
+    }
+    introSeconds++;
+    if(introSeconds >= 375)
+        transition(WAITING);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void display_controls(){
     if (display_controls_once){

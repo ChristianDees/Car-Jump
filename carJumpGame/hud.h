@@ -13,7 +13,7 @@ extern char seconds_score;
 extern char draw_once;
 extern char pause_flag;
 
-
+void display_intro();
 void display_controls();
 void display_controls_two();
 void display_score();

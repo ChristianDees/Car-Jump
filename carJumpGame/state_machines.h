@@ -3,6 +3,7 @@
 
 // states
 typedef enum {
+    INTRO,
     WAITING,
     CHANGETIME,
     CONTROLPAGEONE,
@@ -13,6 +14,7 @@ typedef enum {
 } State;
 
 // function prototypes
+void state_intro();
 void state_waiting();
 void state_change_time();
 void state_control_page_one();

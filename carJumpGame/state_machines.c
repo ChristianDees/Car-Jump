@@ -7,7 +7,11 @@
 #include "clock.h"
 #include "hud.h"
 
-State current_state = WAITING;
+State current_state = INTRO;
+
+void state_intro(){
+    display_intro();
+}
 
 void state_waiting(){
     display_clock();
