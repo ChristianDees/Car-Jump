@@ -22,10 +22,11 @@ extern short controlPos_enemy_two[2];
 
 extern char enable_second_enemy;
 extern char overlap_flag;
-extern short count2;
-extern short seconds;
-extern short secCounOne;
 extern char jump_flag;
+extern short enemy_seconds;
+extern short jump_seconds;
+extern short post_secs;
+extern short jump_once;
 
 extern unsigned int colorBGR;
 extern unsigned int colorBGR_two;

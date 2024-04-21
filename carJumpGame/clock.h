@@ -15,6 +15,6 @@ extern short minutes;
 extern char changeTime;
 extern char display_clock_once;
 
-extern int secCount;
+extern int clock_seconds;
 extern int totalSeconds;
 #endif

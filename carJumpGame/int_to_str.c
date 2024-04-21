@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+// turn integer to string
 void int_to_str(char str[], int num, int totalLength)
 {
     int i;

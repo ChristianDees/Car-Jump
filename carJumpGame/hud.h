@@ -10,7 +10,7 @@ extern char display_controls_once;
 extern char score_once;
 extern char seconds_score;
 
-extern char draw_once;
+extern char display_gover_once;
 extern char pause_flag;
 
 void display_intro();

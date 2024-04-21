@@ -6,7 +6,11 @@
 int buzz_seconds = 0;           // number of times function is called during each interrupt
 char buzz_second_count = 0;     // count of buzz_seconds var
 char buzz_toggler = 0;          // char toggler indicating when buzzer should be on/off
-char buzz_flag = 0;
+char buzz_flag = 0;             // flag for game over buzzer
+int jump_buzz_seconds = 0;      // seconds counter
+char jump_buzz_flag = 0;        // flag to buzz when jumping
+int intro_buzz_seconds = 0;     // seconds counter
+
 
 void buzzer_init()
 {
@@ -26,35 +30,31 @@ void buzzer_set_period(short cycles)
   CCR1 = cycles >> 1;   // signal is on same time it is off (making a stable waveform)
 }
 
+// buzz womp womp
 void buzz_game_over(){
     buzz_seconds++;
     if (buzz_seconds >= 50) {      // once every 90th of a second
         buzz_seconds = 0;
         buzz_second_count++;
-        
         buzz_toggler ^= 1;         // "toggle buzzer on/off"
-        buzzer_set_period(8000);
+        buzzer_set_period(15000);
         if (!(buzz_toggler))       // if buzzer is not on, set frequency to 0
           buzzer_set_period(0);
-        if (buzz_second_count==3){ // on second buzz, make lower pitch
-            buzzer_set_period(15000);
-        }
-        if (buzz_second_count==4){ // on second buzz, make lower pitch
+        if (buzz_second_count==3)  // on second buzz, make lower pitch
+            buzzer_set_period(20000);
+        if (buzz_second_count==4)  // on second buzz, make lower pitch
             buzz_flag = 0;
-        }
-        
     }
 }
 
-int jump_buzz_seconds = 0;
-char jump_buzz_flag = 0;
+// buzz once when jumping
 void jump_buzz(){
     if(jump_buzz_flag && !buzz_flag){
         jump_buzz_seconds++;
-        if(jump_buzz_seconds >= 10){
+        if(jump_buzz_seconds >= 50){
             buzzer_set_period(5000);
         }
-        if(jump_buzz_seconds >= 50){
+        if(jump_buzz_seconds >= 100){
             buzzer_set_period(0);
             jump_buzz_seconds = 0;
             jump_buzz_flag = 0;
@@ -62,7 +62,7 @@ void jump_buzz(){
     }
 }
 
-int intro_buzz_seconds = 0;
+// buzz 3 times accending
 void intro_buzz(){
     intro_buzz_seconds++;
     if (intro_buzz_seconds < 125 && intro_buzz_seconds >= 10)

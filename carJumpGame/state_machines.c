@@ -7,6 +7,8 @@
 #include "clock.h"
 #include "hud.h"
 
+
+// beginning state is loading screen
 State current_state = INTRO;
 
 void state_intro(){
