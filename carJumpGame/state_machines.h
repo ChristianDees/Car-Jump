@@ -1,5 +1,5 @@
-#ifndef stateMachines_included
-#define stateMachines_included
+#ifndef state_machines_included
+#define state_machines_included
 
 // states
 typedef enum {
