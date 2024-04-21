@@ -26,6 +26,7 @@ void display_intro(){
         drawString11x16_normal(40,85, "JUMP", WHITE, COLOR_RED);
         fillRectangle(15, screenHeight-15, screenWidth-30, 4, WHITE);
         display_intro_once = 0;
+        redrawScreen = 1;
     }
     introSeconds++;
     if(introSeconds >= 375)

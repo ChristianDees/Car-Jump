@@ -42,6 +42,7 @@ update_shapes()
 // reset vars when moving to new state
 void update_vars(){
     clearScreen(COLOR_GRAY);
+    redrawScreen = 1;
     
     // character/enemy color reassign
     int x = random_int_generator();

@@ -108,7 +108,6 @@ void display_clock(){
           hour++;
           update_time(1,0);
       }
-    redrawScreen = 1;
 }
 
 // blink screen on and off every second
@@ -118,6 +117,6 @@ void blink_change_clock(){
         clock_seconds = 0;
         refresh_1();
         refresh_3();
+        redrawScreen = 1;
     }
-    redrawScreen = 1;
 }
