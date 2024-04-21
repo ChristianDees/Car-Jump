@@ -45,3 +45,32 @@ void buzz_game_over(){
         
     }
 }
+
+int jump_buzz_seconds = 0;
+char jump_buzz_flag = 0;
+void jump_buzz(){
+    if(jump_buzz_flag && !buzz_flag){
+        jump_buzz_seconds++;
+        if(jump_buzz_seconds >= 10){
+            buzzer_set_period(5000);
+        }
+        if(jump_buzz_seconds >= 50){
+            buzzer_set_period(0);
+            jump_buzz_seconds = 0;
+            jump_buzz_flag = 0;
+        }
+    }
+}
+
+int intro_buzz_seconds = 0;
+void intro_buzz(){
+    intro_buzz_seconds++;
+    if (intro_buzz_seconds < 125 && intro_buzz_seconds >= 10)
+        buzzer_set_period(15000);
+    else if (intro_buzz_seconds < 250 && intro_buzz_seconds > 125)
+        buzzer_set_period(10000);
+    else if (intro_buzz_seconds < 375 && intro_buzz_seconds > 250 && intro_buzz_seconds > 125)
+        buzzer_set_period(5000);
+    else if (intro_buzz_seconds >= 375)
+        buzzer_set_period(0);
+}

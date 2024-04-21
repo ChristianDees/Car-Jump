@@ -10,6 +10,7 @@
 State current_state = INTRO;
 
 void state_intro(){
+    intro_buzz();
     display_intro();
 }
 
@@ -31,8 +32,10 @@ void state_control_page_two(){
 void state_game(){
     move_clouds();
     move_enemy();
-    if (jump_flag)
+    if (jump_flag){
         character_jump();
+        jump_buzz();
+    }
     display_score();
 }
 

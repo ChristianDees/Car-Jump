@@ -5,6 +5,7 @@
 #include "characters.h"
 #include "hud.h"
 #include "clock.h"
+#include "buzzer.h"
 
 
 char
@@ -60,9 +61,9 @@ switch_interrupt_handler()
         case CONTROLPAGEONE:
             if(button1)
                 transition(GAME);
-            if(button2)
+            else if(button2)
                 transition(WAITING);
-            if(button3)
+            else if(button3)
                 transition(CONTROLPAGETWO);
             break;
         case CONTROLPAGETWO:
@@ -70,21 +71,23 @@ switch_interrupt_handler()
                 transition(CONTROLPAGEONE);
             break;
         case GAME:
-            if (button2)
+            if (button2){
                 jump_flag = 1;
-            if (button3)
+                jump_buzz_flag = 1;
+            }
+            else if (button3)
                 pause_flag = 1;
             break;
         case PAUSE:
             if (button3)
                 reset_pause_flag = 1;
-            if (button4)
+            else if (button4)
                 transition(WAITING);
             break;
         case GAMEOVER:
             if (button1)
                 transition(GAME);
-            if (button4)
+            else if (button4)
                 transition(WAITING);
             break;
     }

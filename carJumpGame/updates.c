@@ -113,4 +113,6 @@ void update_vars(){
     seconds = 0;
     display_controls_once = 1;
     display_clock_once = 1;
+    jump_buzz_flag = 0;
+    jump_buzz_seconds = 0;
 }
