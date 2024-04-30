@@ -42,7 +42,6 @@ char do_overlap(char cTLX, char cTLY, char cBRX, char cBRY, char eTLX, char eTLY
 }
 
 void move_enemy() {
-    P1OUT |= 64;  // Green LED on when CPU on
     enemy_seconds++;
     if (enemy_seconds >= 50){ // every 50th of a second
         post_secs++;
@@ -101,7 +100,6 @@ void move_enemy() {
         redrawScreen = 1;  // mark screen for redrawing
         enemy_seconds = 0;       // reset second count
     }
-    P1OUT &= ~64;  // turn off the LED
 }
 
 void

@@ -10,8 +10,6 @@
     .global state_intro
     .global state_waiting
     .global state_change_time
-    .global state_control_page_one
-    .global state_control_page_two
     .global state_game
     .global state_pause
     .global state_game_over
@@ -39,23 +37,10 @@
 
 state_intro:
     call #intro_buzz        ; intro_buzz()
-    call #display_intro     ; display_intro()
-    pop r0
-
-state_waiting:
-    call #display_clock     ; display_clock()
     pop r0
 
 state_change_time:
     call #blink_change_clock; blink_change_clock()
-    pop r0
-
-state_control_page_one:
-    call #display_controls  ; display_controls()
-    pop r0
-
-state_control_page_two:
-    call #display_controls_two ; display_controls_two()
     pop r0
 
 state_game:

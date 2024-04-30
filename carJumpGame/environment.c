@@ -66,7 +66,6 @@ screen_update_cloud(short drawPos[2], short controlPos[2])
 }
 
 void move_clouds() {
-    P1OUT |= 64;  // Green LED on when CPU on
     env_seconds++;
     if (env_seconds >= 90) {    // 90th of second
         short oldCol_one = controlPos_cloud[0];
@@ -100,7 +99,6 @@ void move_clouds() {
         redrawScreen = 1;  // Mark the screen for redrawing
         env_seconds = 0;
     }
-    P1OUT &= ~64;  // Turn off the LED
 }
 
 void floor_bar(){

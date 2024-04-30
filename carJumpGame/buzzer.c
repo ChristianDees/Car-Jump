@@ -2,6 +2,7 @@
 #include "libTimer.h"
 #include <stdlib.h>
 #include "buzzer.h"
+#include "state_machines.h"
 
 int buzz_seconds = 0;           // number of times function is called during each interrupt
 char buzz_second_count = 0;     // count of buzz_seconds var
@@ -69,8 +70,9 @@ void intro_buzz(){
         buzzer_set_period(15000);
     else if (intro_buzz_seconds < 250 && intro_buzz_seconds > 125)
         buzzer_set_period(10000);
-    else if (intro_buzz_seconds < 375 && intro_buzz_seconds > 250 && intro_buzz_seconds > 125)
+    else if (intro_buzz_seconds < 350 && intro_buzz_seconds > 250 && intro_buzz_seconds > 125)
         buzzer_set_period(5000);
-    else if (intro_buzz_seconds >= 375)
-        buzzer_set_period(0);
+    else if (intro_buzz_seconds >= 350){
+        transition(WAITING);
+    }
 }

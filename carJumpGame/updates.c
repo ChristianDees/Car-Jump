@@ -13,13 +13,31 @@
 #include "clock.h"
 #include "hud.h"
 
-char redrawScreen = 0;
+char redrawScreen = 1;
  
 // update shape positions
 void
 update_shapes()
 {
-    if(current_state == GAME){
+    if (current_state == INTRO){
+        display_intro();
+    } else if (current_state == WAITING){
+        display_clock();
+        if (hour_flag)
+            update_time(1,0);
+        if (minutes_flag)
+            update_time(0,1);
+    } else if (current_state == CHANGETIME){
+        screen_update_time();
+        if (hour_flag)
+            update_time(1,0);
+        if (minutes_flag)
+            update_time(0,1);
+    } else if (current_state == CONTROLPAGEONE)
+        display_controls();
+    else if (current_state == CONTROLPAGETWO)
+        display_controls_two();
+    else if(current_state == GAME){
         screen_update_score();
         screen_update_cloud(drawPos_cloud, controlPos_cloud);
         screen_update_cloud(drawPos_cloud_two, controlPos_cloud_two);
@@ -118,6 +136,8 @@ void update_vars(){
     display_pause_once = 1;
     display_controls_once = 1;
     display_clock_once = 1;
+    refresh_time_flag = 1;
+    blink_seconds = 0;
     
     // buzzer resets
     

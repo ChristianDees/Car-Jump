@@ -26,11 +26,7 @@ void display_intro(){
         drawString11x16_normal(40,85, "JUMP", WHITE, COLOR_RED);
         fillRectangle(15, screenHeight-15, screenWidth-30, 4, WHITE);
         display_intro_once = 0;
-        redrawScreen = 1;
     }
-    introSeconds++;
-    if(introSeconds >= 375)
-        transition(WAITING);
 }
 
 // first control page
@@ -48,7 +44,6 @@ void display_controls(){
         drawString8x12(55,105, "Pause", BLACK, COLOR_GRAY);
         drawString8x12(17,130, "SW4:", BLACK, COLOR_GRAY);
         drawString8x12(55,130, "Set Time", BLACK, COLOR_GRAY);
-        redrawScreen = 1;
         display_controls_once = 0;
     }
 }
@@ -67,7 +62,6 @@ void display_controls_two(){
         drawString8x12(55,105, "Minutes", BLACK, COLOR_GRAY);
         drawString8x12(17,130, "SW4:", BLACK, COLOR_GRAY);
         drawString8x12(55,130, "Return", BLACK, COLOR_GRAY);
-        redrawScreen = 1;
         display_controls_once = 0;
     }
 }
@@ -137,5 +131,4 @@ void draw_game_over() {
         display_gover_once = 0;
         redrawScreen = 1;
     }
-    
 }

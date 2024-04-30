@@ -4,21 +4,13 @@
 
 void wdt_c_handler()
 {
+    count_time();
     switch (current_state) {
         case INTRO:
             state_intro();
             break;
-        case WAITING:
-            state_waiting();
-            break;
         case CHANGETIME:
             state_change_time();
-            break;
-        case CONTROLPAGEONE:
-            state_control_page_one();
-            break;
-        case CONTROLPAGETWO:
-            state_control_page_two();
             break;
         case GAME:
             state_game();

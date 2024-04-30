@@ -5,10 +5,15 @@
 
 short hour = 0;
 short minutes = 0;
-char changeTime = 0;
 char display_clock_once = 1;
+char refresh_time_flag = 1;
 int clock_seconds = 0;
 int total_seconds = 0;
+
+char hour_flag = 0;
+char minutes_flag = 0;
+
+int blink_seconds = 0;
 
 
 // refresh first and second position
@@ -82,18 +87,11 @@ update_time(char change_hour, char change_minutes){
         clock_number(first_digit_m, 3,0);
         clock_number(second_digit_m, 4,0);
     }
-    redrawScreen = 1;
+    hour_flag = 0;
+    minutes_flag = 0;
 }
 
-// show current time
-void display_clock(){
-    if(display_clock_once){
-        clearScreen(COLOR_GRAY);
-        update_time(0,0);
-        clock_colon();
-        redrawScreen = 1;
-        display_clock_once = 0;
-    }
+void count_time(){
     clock_seconds++;
       if (clock_seconds >= 250){
           clock_seconds = 0;
@@ -101,22 +99,42 @@ void display_clock(){
           if (total_seconds >= 60){
               total_seconds = 0;
               minutes++;
-              update_time(0,1);
+              redrawScreen = 1;
+              minutes_flag = 1;
           }
       }
-      if (minutes >= 60){
-          hour++;
-          update_time(1,0);
-      }
+    if (minutes >= 60){
+        hour++;
+        redrawScreen = 1;
+        hour_flag = 1;
+    }
+}
+// show current time
+void display_clock(){
+    if(display_clock_once){
+        update_time(0,0);
+        clock_colon();
+        redrawScreen = 1;
+        display_clock_once = 0;
+    }
+    
 }
 
 // blink screen on and off every second
 void blink_change_clock(){
-    clock_seconds++;
-    if(clock_seconds >= 250){
-        clock_seconds = 0;
+    blink_seconds++;
+    if(blink_seconds >= 250){
+        blink_seconds = 0;
+        refresh_time_flag = 1;
+        redrawScreen = 1;
+    }
+}
+
+
+void screen_update_time(){
+    if (refresh_time_flag){
         refresh_1();
         refresh_3();
-        redrawScreen = 1;
+        refresh_time_flag = 0;
     }
 }

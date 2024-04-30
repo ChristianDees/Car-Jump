@@ -44,22 +44,27 @@ switch_interrupt_handler()
         case WAITING:
             if (button1)
                 transition(GAME);
-            else if (button4)
+            else if (button4){
+                redrawScreen = 1;
                 current_state = CHANGETIME;
+            }
             else if (button3)
                 transition(CONTROLPAGEONE);
             break;
         case CHANGETIME:
             if (button2){
-                changeTime = 1;
                 hour++;
-                update_time(1,0);
+                hour_flag = 1;
+                redrawScreen = 1;
             } else if (button3){
-                changeTime = 1;
                 minutes++;
-                update_time(0,1);
-            } else if (button1)
+                minutes_flag = 1;
+                redrawScreen = 1;
+            } else if (button1){
                 current_state = WAITING;
+                blink_seconds = 0;
+                refresh_time_flag = 1;
+            }
             break;
         case CONTROLPAGEONE:
             if(button1)
